@@ -1,6 +1,6 @@
 [submodule "External/Box2D"]
 	path = External/Box2D
-	url = https://github.com/BattleFireLTD/Box2D.git
+	url = https://github.com/erincatto/box2d.git
 [submodule "External/PBC"]
 	path = External/PBC
 	url = https://github.com/BattleFireLTD/PBC.git
@@ -10,4 +10,18 @@
 [submodule "External/PhysX3.4"]
 	path = External/PhysX3.4
 	url = https://github.com/NVIDIAGameWorks/PhysX-3.4.git
-
+[submodule "External/zlib"]
+	path = External/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "External/LuaSocket"]
+	path = External/LuaSocket
+	url = https://github.com/BattleFireLTD/LuaSocket.git
+[submodule "External/LibZipRel"]
+	path = External/LibZipRel
+	url = https://github.com/BattleFireLTD/LibZipRel.git
+[submodule "External/LibCurl"]
+	path = External/LibCurl
+	url = https://github.com/BattleFireLTD/LibCurl.git
+[submodule "External/FreeType"]
+	path = External/FreeType
+	url = https://github.com/BattleFireLTD/FreeType.git
