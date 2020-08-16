@@ -1,0 +1,3 @@
+[submodule "External/Box2D"]
+	path = External/Box2D
+	url = https://github.com/BattleFireLTD/Box2D.git
