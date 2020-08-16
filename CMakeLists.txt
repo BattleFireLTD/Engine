@@ -55,7 +55,7 @@ if(WIN32)
 	include_directories(${PROJECT_SOURCE_DIR}/External/LibCurl/include)
 	include_directories(${PROJECT_SOURCE_DIR}/External/FreeType/include)
 	GroupDirectories("" "" ${CMAKE_CURRENT_SOURCE_DIR}/Runtime common_runtime_sources)
-	GroupDirectories("" "" ${CMAKE_CURRENT_SOURCE_DIR}/Platform/WinPlayer winplayer_sources)
+	GroupDirectories("" "" ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Windows/Player winplayer_sources)
 	
 	set(WinPlayerSources ${common_runtime_sources} ${winplayer_sources})
 	
@@ -69,8 +69,9 @@ if(WIN32)
 	set(CMAKE_C_FLAGS "/DWIN32 /D_WINDOWS /W3")
 	
 	link_directories(${PROJECT_SOURCE_DIR}/External/PrebuiltLibs/x86)
-	
 	add_executable(${PROJECT_NAME} ${WinPlayerSources})
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 	set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "WinPlayer")
+	message(STATUS "${CMAKE_EXE_LINKER_FLAGS}")
 	link_libraries(libLua5.1.4 libPBC libLuaSocket)
 ENDIF()
