@@ -1,0 +1,5 @@
+syntax="proto3";
+package PlatformWindowsSeriallizer;
+message WinResources{
+	map<string,bytes> res=1;
+}
