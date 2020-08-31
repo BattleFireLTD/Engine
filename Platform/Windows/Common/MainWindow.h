@@ -5,6 +5,7 @@ namespace Editor {
 	class MainWindow :public DoubleBufferedWindow {
 	protected:
 		Gdiplus::Point mDeltaWhenDrag;
+		Gdiplus::Color mTitleBKGColor;
 		int mMarginLeft, mMarginRight, mMarginTop, mMarginBottom, mFrameEdgeWidth;
 		bool mbDraging;
 		UINode * mUIRoot,*mLastTouchObject;
@@ -17,6 +18,9 @@ namespace Editor {
 		LRESULT OnNCCALCSIZE(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		LRESULT OnNCPAINT(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		LRESULT OnNCHITTEST(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
+		virtual void OnPaint();
+		virtual void DrawFrame(Gdiplus::Graphics&painter);
+		virtual void DrawNCUI(Gdiplus::Graphics&painter);
 	public:
 		MainWindow();
 		void Init();

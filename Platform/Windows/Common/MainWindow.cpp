@@ -10,6 +10,19 @@ namespace Editor {
 		mFrameEdgeWidth = 3;
 		mUIRoot = nullptr;
 		mLastTouchObject = nullptr;
+		mTitleBKGColor = Gdiplus::Color(200, 200, 200);
+	}
+	void MainWindow::OnPaint(){
+		if (mBufferWidth != mRect.Width || mBufferHeight != mRect.Height) {
+			InitDoubleBuffer();
+		}
+		Gdiplus::Graphics painter(mBKGDC);
+		Gdiplus::SolidBrush brush(mBKGColor);
+		painter.FillRectangle(&brush, 0, mMarginTop, mRect.Width, mRect.Height - mMarginTop);
+		DrawFrame(painter);
+		DrawNCUI(painter);
+		DrawContent(painter);
+		OnEndPaint();
 	}
 	void MainWindow::OnSize(WPARAM wParam, LPARAM lParam, void*reserved) {
 		RECT rect;
@@ -60,7 +73,6 @@ namespace Editor {
 	}
 
 	LRESULT MainWindow::OnNCACTIVATE(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */) {
-		InvalidateRect(hWnd, NULL, false);
 		return TRUE;
 	}
 
@@ -90,12 +102,11 @@ namespace Editor {
 		RECT ClientRect;
 		GetClientRect(hWnd, &ClientRect);
 		OffsetRect(&ClientRect, mMarginLeft, mMarginTop);
-		ExcludeClipRect(WindowDC, ClientRect.left, ClientRect.top,
-			ClientRect.right, ClientRect.bottom);
+		ExcludeClipRect(WindowDC, ClientRect.left, ClientRect.top,ClientRect.right, ClientRect.bottom);
 		Gdiplus::Graphics painter(WindowDC);
-		painter.Clear(mBKGColor);
+		DrawFrame(painter);
+		DrawNCUI(painter);
 		ReleaseDC(hWnd, WindowDC);
-		InvalidateRect(mhWnd, nullptr, false);
 		return 0;
 	}
 	LRESULT MainWindow::OnNCHITTEST(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */) {
@@ -134,6 +145,15 @@ namespace Editor {
 		return HTCLIENT;
 	}
 
+	void MainWindow::DrawFrame(Gdiplus::Graphics&painter) {
+		Gdiplus::SolidBrush brush(mTitleBKGColor);
+		painter.FillRectangle(&brush, 0, 0, mRect.Width, mMarginTop);
+	}
+	void MainWindow::DrawNCUI(Gdiplus::Graphics&painter) {
+		if (mUIRoot!=nullptr){
+			mUIRoot->DrawRecursively(painter);
+		}
+	}
 	void MainWindow::InitWindowClasses() {
 		RegisterWindowClass(CS_VREDRAW | CS_HREDRAW | CS_DROPSHADOW | CS_DBLCLKS , L"MainWindow", WindowEventProc);
 	}

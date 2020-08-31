@@ -17,12 +17,6 @@ namespace Editor
 		painter.Clear(mBKGColor);
 		DrawContent(painter);
 		OnEndPaint();
-		if (!mChildren.empty()){
-			for (auto iter=mChildren.begin();iter!=mChildren.end();++iter)
-			{
-				(*iter)->PaintWindow();
-			}
-		}
 	}
 
 	void DoubleBufferedWindow::OnEndPaint(){

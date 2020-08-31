@@ -9,6 +9,7 @@ namespace Editor{
 	public:
 		ImageButton();
 		void SetImage(const char * path);
+		void SetImageData(StreamImageData*data);
 		void SetRect(int x, int y, int width, int height);
 		virtual void Draw(Gdiplus::Graphics&painter);
 		virtual void OnTouchBegin(int x, int y, int touch_id = 0);

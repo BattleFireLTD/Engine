@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "Runtime/Debugger/Logger.h"
 #pragma comment(lib,"dwmapi.lib")
 #pragma warning(disable:4244)
 namespace Editor
@@ -211,14 +212,14 @@ namespace Editor
 	void BaseWindow::MoveWindow(int x, int y, int width, int height)
 	{
 		SetRect(x, y, width, height);
-		::MoveWindow(mhWnd, x, y, width, height,true);
+		::MoveWindow(mhWnd, x, y, width, height,false);
 	}
 
 	void BaseWindow::SetSize(int width, int height,HWND param)
 	{
 		mRect.Width = width;
 		mRect.Height = height;
-		SetWindowPos(mhWnd, param, 0, 0, mRect.Width, mRect.Height, SWP_SHOWWINDOW);
+		SetWindowPos(mhWnd, param, 0, 0, mRect.Width, mRect.Height, SWP_NOREDRAW);
 	}
 
 	BaseWindow*BaseWindow::GetParent()

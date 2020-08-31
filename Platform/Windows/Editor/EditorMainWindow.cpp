@@ -7,9 +7,6 @@
 #pragma comment(lib,"dwmapi.lib")
 namespace Editor {
 	void EditorMainWindow::DrawContent(Gdiplus::Graphics&painter){
-		if (mUIRoot!=nullptr){
-			mUIRoot->DrawRecursively(painter);
-		}
 	}
 	void EditorMainWindow::OnMouseWheel(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */) {
 	}
@@ -25,7 +22,7 @@ namespace Editor {
 			if (node != nullptr && node == mCloseBtn) {
 				node->OnTouchBegin(x,y);
 				mLastTouchObject = node;
-				InvalidateRect(mhWnd, NULL, true);
+				InvalidateRect(mhWnd, nullptr, true);
 				SetCapture(mhWnd);
 			}
 			else {
@@ -82,23 +79,21 @@ namespace Editor {
 		SetWindowLongPtr(mhWnd, GWL_USERDATA, (LONG_PTR)this);
 		mHDC = GetWindowDC(mhWnd);
 		SetRect(0, 0, 32, 32);
-		mBKGColor = Gdiplus::Color(0, 150, 200);
+		mBKGColor = Gdiplus::Color(30, 30, 30);
 		mTitle = new Editor::StaticText;
 		mTitle->SetAligning(Editor::AligningModeMiddle);
-		mTitle->SetRect(0, mMarginLeft, 1286-mMarginLeft-mMarginRight, mMarginTop);
+		mTitle->SetRect(0, 6, 1286-mMarginLeft-mMarginRight, mMarginTop);
 		mTitle->SetText("BattleFire Editor");
+		mTitle->SetTextColor(0, 150, 200);
 		mUIRoot = mTitle;
-		mCloseBtn = nullptr;
-		if (Alice::FileSystem::Exists("Resource/close_btn.png")) {
-			mCloseBtn = new Editor::ImageButton;
-			mCloseBtn->SetImage("Resource/close_btn.png");
-			mCloseBtn->SetRect(1248, 2, 24, 24);
-			mCloseBtn->SetOnClickedHandler([](void*)->void{
-				Debug("quit");
-				PostQuitMessage(0);
-			});
-			mUIRoot->AppendChild(mCloseBtn);
-		}
+		mCloseBtn = new Editor::ImageButton;
+		mCloseBtn->SetImageData(WinResources::Singleton()->GetImageData("close_btn.png"));
+		mCloseBtn->SetRect(1248, 2, 24, 24);
+		mCloseBtn->SetOnClickedHandler([](void*)->void {
+			Debug("quit");
+			PostQuitMessage(0);
+		});
+		mUIRoot->AppendChild(mCloseBtn);
 		mAccel = WinEnviroment::InitAccel();
 	}
 }

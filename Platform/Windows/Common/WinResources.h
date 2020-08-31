@@ -23,7 +23,7 @@ namespace Editor{
 	class WinResources {
 	protected:
 		static WinResources*mSelf;
-		PlatformWindowsSeriallizer::WinResources mWinRes;
+		PlatformWindowsSeriallizer::WinResources *mWinRes;
 		std::unordered_map<std::string, StreamImageData*> mCachedImages;
 	public:
 		static WinResources*Singleton();

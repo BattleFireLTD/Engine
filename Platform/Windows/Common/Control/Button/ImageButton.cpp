@@ -8,6 +8,9 @@ namespace Editor{
 	void ImageButton::SetImage(const char * path) {
 		mImage.SetImagePath(path);
 	}
+	void ImageButton::SetImageData(StreamImageData*data) {
+		mImage.SetImageData(data);
+	}
 	void ImageButton::SetRect(int x, int y, int width, int height) {
 		mImage.SetRect(x, y, width, height);
 		UINode::SetRect(x, y, width, height);

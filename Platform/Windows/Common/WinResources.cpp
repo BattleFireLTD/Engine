@@ -1,22 +1,27 @@
 #include "WinResources.h"
 #include "Runtime/Allocator/AliceMemory.h"
+#include "Runtime/IO/ResourceManager.h"
 namespace Editor {
 	WinResources*WinResources::mSelf = nullptr;
 	WinResources*WinResources::Singleton() {
-		if (mSelf != nullptr) {
+		if (mSelf == nullptr) {
 			mSelf = new WinResources;
 		}
 		return mSelf;
 	}
 	void WinResources::Init(const char * path) {
-
+		Alice::Data data;
+		if (Alice::ResourceManager::LoadData(path,data)){
+			mWinRes = new PlatformWindowsSeriallizer::WinResources;
+			mWinRes->ParseFromArray(data.mData, data.mDataLen);
+		}
 	}
 	StreamImageData*WinResources::GetImageData(const char * path) {
 		if (mCachedImages.find(path)!=mCachedImages.end()){
 			return mCachedImages[path];
 		}
-		if (mWinRes.res().contains(path)) {
-			const std::string & original_binary_data = mWinRes.res().at(path);
+		if (mWinRes->res().contains(path)) {
+			const std::string & original_binary_data = mWinRes->res().at(path);
 			StreamImageData *sid = InitStreamImageDataFromRawBuffer((unsigned char*)original_binary_data.c_str(), original_binary_data.length());
 			sid->mbShared = true;
 			mCachedImages.insert(std::pair<std::string,StreamImageData*>(path,sid));

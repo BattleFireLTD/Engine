@@ -1,6 +1,7 @@
 #include "Platform/Windows/Common/WinEnviroment.h"
 #include "Platform/Windows/Common/WinResources.h"
 #include "Platform/Windows/Editor/EditorMainWindow.h"
+#include "Runtime/IO/ResourceManager.h"
 #if _DEBUG
 #pragma comment( linker, "/subsystem:\"console\" /entry:\"WinMainCRTStartup\"")
 #endif
@@ -47,7 +48,8 @@ void MessageLoop() {
 }
 INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 	Editor::WinEnviroment::Init(hInstance);
-	Editor::WinResources::Singleton()->Init("WinRes");
+	Alice::ResourceManager::Init();
+	Editor::WinResources::Singleton()->Init("res");
 	Editor::MainWindow::InitWindowClasses();
 	gEditorMainWindow = new Editor::EditorMainWindow;
 	gEditorMainWindow->Init();
