@@ -25,7 +25,10 @@ namespace Editor{
 		virtual void OnTouchEnd(int x, int y, int touch_id = 0);
 		virtual void OnTouchMove(int x, int y, int touch_id = 0);
 		virtual void OnTouchCanceled(int x, int y, int touch_id = 0);
+		virtual void OnTouchEnter(int x, int y, int touch_id = 0);
+		virtual void OnTouchLeave(int x, int y, int touch_id = 0);
 		virtual void OnClicked(int x, int y, int touch_id = 0);
+		virtual void ProcessEvent(int nCommandID) {}
 		void SetOnTouchBeginHandler(VOID_VOID_PTR foo);
 		void SetOnTouchEndHandler(VOID_VOID_PTR foo);
 		void SetOnTouchMoveHandler(VOID_VOID_PTR foo);

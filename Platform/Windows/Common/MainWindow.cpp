@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "Runtime/Debugger/Logger.h"
+#include "ViewWindow.h"
 namespace Editor {
 	MainWindow::MainWindow() {
 		mbDraging = false;
@@ -31,6 +32,12 @@ namespace Editor {
 		mRect.Y = rect.top;
 		mRect.Width = rect.right - rect.left;
 		mRect.Height = rect.bottom - rect.top;
+		HWND cWnd = GetWindow(mhWnd, GW_CHILD);
+		while (cWnd != nullptr) {
+			BaseWindow*vw = WindowInstance<BaseWindow>(cWnd);
+			vw->OnParentResized(mRect.Width, mRect.Height);
+			cWnd = GetNextWindow(cWnd, GW_HWNDNEXT);
+		}
 	}
 	void MainWindow::OnLButtonDown(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */)
 	{
@@ -146,7 +153,7 @@ namespace Editor {
 	}
 
 	void MainWindow::DrawFrame(Gdiplus::Graphics&painter) {
-		Gdiplus::SolidBrush brush(mTitleBKGColor);
+		Gdiplus::SolidBrush brush(mBKGColor);
 		painter.FillRectangle(&brush, 0, 0, mRect.Width, mMarginTop);
 	}
 	void MainWindow::DrawNCUI(Gdiplus::Graphics&painter) {

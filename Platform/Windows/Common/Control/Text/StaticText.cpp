@@ -146,7 +146,7 @@ namespace Editor
 			Gdiplus::RectF rect;
 			painter.MeasureString(mWText,lstrlen(mWText),SharedFont, Gdiplus::PointF(0,0),SharedStringFormat,&rect);
 			int offsetX=mRect.X+mRect.Width / 2-rect.Width/2;
-			painter.DrawString(mWText, -1, SharedFont, Gdiplus::PointF(offsetX, mRect.Y + 2), SharedStringFormat, &brush);
+			painter.DrawString(mWText, -1, SharedFont, Gdiplus::PointF(offsetX, mRect.Y - 2 + rect.Height/2.0f), SharedStringFormat, &brush);
 		}
 		UINode::Draw(painter);
 	}

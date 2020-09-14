@@ -43,6 +43,7 @@ namespace Editor{
 		void Update();
 		virtual void PaintWindow();
 		virtual void MoveWindow(int x, int y, int width, int height);
+		virtual void OnParentResized(int width, int height) {}
 		int GetX();
 		int GetY();
 		BaseWindow*GetParent();
@@ -54,6 +55,10 @@ namespace Editor{
 		virtual void OnShow();
 		void Hide();
 		virtual void OnHide();
+		template<typename T>
+		static T* WindowInstance(HWND hWnd) {
+			return (T*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		}
 	public:
 		static ATOM RegisterWindowClass(UINT style, LPCTSTR pWndClassName, WNDPROC wndProc);
 		static std::unordered_set<BaseWindow*> mScheduledWindows;

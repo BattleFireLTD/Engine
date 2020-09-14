@@ -32,7 +32,8 @@ namespace Editor{
 		}
 	}
 	void ImageButton::OnTouchCanceled(int x, int y, int touch_id /* = 0 */) {
-
+		Gdiplus::Rect original_rect = mImage.GetRect();
+		mImage.SetRect(mOriginalPos.X, mOriginalPos.Y, original_rect.Width, original_rect.Height);
 	}
 	void ImageButton::OnTouchMove(int x, int y, int touch_id /* = 0 */) {
 

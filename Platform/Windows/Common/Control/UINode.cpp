@@ -98,4 +98,10 @@ namespace Editor{
 	void UINode::OnClicked(int x, int y, int touch_id /* = 0 */) {
 
 	}
+	void UINode::OnTouchEnter(int x, int y, int touch_id /* = 0 */) {
+
+	}
+	void UINode::OnTouchLeave(int x, int y, int touch_id /* = 0 */) {
+
+	}
 }

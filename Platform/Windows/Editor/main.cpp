@@ -1,5 +1,6 @@
 #include "Platform/Windows/Common/WinEnviroment.h"
 #include "Platform/Windows/Common/WinResources.h"
+#include "Platform/Windows/Common/ViewWindow.h"
 #include "Platform/Windows/Editor/EditorMainWindow.h"
 #include "Runtime/IO/ResourceManager.h"
 #if _DEBUG
@@ -51,9 +52,10 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	Alice::ResourceManager::Init();
 	Editor::WinResources::Singleton()->Init("res");
 	Editor::MainWindow::InitWindowClasses();
+	Editor::ViewWindow::InitWindowClasses();
 	gEditorMainWindow = new Editor::EditorMainWindow;
 	gEditorMainWindow->Init();
-	gEditorMainWindow->MoveWindow(0, 0, 1280, 720);
+	gEditorMainWindow->MoveWindow(0, 0, 1286, 750);
 	gEditorMainWindow->Show();
 	MessageLoop();
 	return 0;

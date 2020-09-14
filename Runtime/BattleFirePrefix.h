@@ -111,3 +111,4 @@ typedef void* AliceAny;
 #define _00000000_00000000_01000000_00000000 16384
 #define _00000000_00000000_10000000_00000000 32768
 typedef void(*VOID_VOID_PTR)(void*);
+typedef void(*VOID_NO_ARG)();
