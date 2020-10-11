@@ -15,4 +15,4 @@ Visual Studio 2017
 3.cmake ..
 
 # Screen Shot
-![编辑器截图](https://i.postimg.cc/yYfVQrDw/1.png "编辑器截图")
+![编辑器截图](https://i.postimg.cc/xd67WC5j/2.jpg "编辑器截图")
