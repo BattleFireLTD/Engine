@@ -25,6 +25,7 @@ namespace Editor {
 		void OnSize(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		void OnCommand(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		void InitTopMenu();
+		void InitTopView();
 	public:
 		HACCEL mAccel;
 		void Init();

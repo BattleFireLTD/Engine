@@ -4,7 +4,8 @@
 namespace Editor {
 	class ViewWindow :public DoubleBufferedWindow {
 	protected:
-		bool mbDraging;
+		bool mbDraging,mbFixedPos,mbFixedWidth,mbFixedHeight;
+		Gdiplus::Rect mFixedRect;
 		Gdiplus::Point mDeltaWhenDrag;
 		UINode * mUIRoot,*mLastTouchObject,*mLastHoverObject;
 	protected:
@@ -20,6 +21,7 @@ namespace Editor {
 		virtual void OnParentResized(int width, int height);
 		void Init(BaseWindow*parent);
 		void AppendUI(UINode*node);
+		void FixedWindow(int x, int y,int width,int height);
 		static void InitWindowClasses();
 	};
 }

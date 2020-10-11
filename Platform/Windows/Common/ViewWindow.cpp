@@ -3,6 +3,10 @@
 namespace Editor {
 	ViewWindow::ViewWindow() {
 		mbDraging = false;
+		mbFixedPos = false;
+		mbFixedWidth = false;
+		mbFixedHeight = false;
+		mFixedRect = {};
 		mUIRoot = nullptr;
 		mLastTouchObject = nullptr;
 		mLastHoverObject = nullptr;
@@ -30,7 +34,10 @@ namespace Editor {
 	{
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
-		UINode*node = mUIRoot->Intersect(x, y);
+		UINode*node = nullptr;
+		if (mUIRoot != nullptr) {
+			node = mUIRoot->Intersect(x, y);
+		}
 		if (node != nullptr) {
 			node->OnTouchBegin(x, y);
 			mLastTouchObject = node;
@@ -45,7 +52,10 @@ namespace Editor {
 	{
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
-		UINode*node = mUIRoot->Intersect(x, y);
+		UINode*node = nullptr;
+		if (mUIRoot != nullptr) {
+			node = mUIRoot->Intersect(x, y);
+		}
 		if (node != nullptr&&node == mLastTouchObject) {
 			node->OnTouchEnd(x, y);
 			InvalidateRect(mhWnd, nullptr, true);
@@ -67,7 +77,10 @@ namespace Editor {
 	{
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
-		UINode*node = mUIRoot->Intersect(x, y);
+		UINode*node = nullptr;
+		if (mUIRoot!=nullptr){
+			node=mUIRoot->Intersect(x, y);
+		}
 		if (node != nullptr) {
 			if (mLastHoverObject != node) {
 				if (mLastHoverObject != nullptr) {
@@ -113,8 +126,28 @@ namespace Editor {
 			mUIRoot->AppendChild(node);
 		}
 	}
+	void ViewWindow::FixedWindow(int x, int y, int width, int height) {
+		mFixedRect = {x,y,width,height};
+		mbFixedPos = (x == -1 || y == -1)?false:true;
+		mbFixedWidth = width == -1 ? false : true;
+		mbFixedHeight = height == -1 ? false : true;
+	}
 	void ViewWindow::OnParentResized(int width, int height) {
-		MoveWindow(0, 0, width, 20);
+		int x = 0, y = 0, w = width, h = height;
+		if (mbFixedPos){
+			x = mFixedRect.X;
+			y = mFixedRect.Y;
+		}
+		if (mbFixedWidth){
+			w = mFixedRect.Width;
+		}
+		if (mbFixedHeight){
+			h = mFixedRect.Height;
+		}
+		if (mUIRoot != nullptr) {
+			mUIRoot->OnContainerSizeChangedRecursively(w, h);
+		}
+		MoveWindow(x, y, w, h);
 	}
 	void ViewWindow::InitWindowClasses() {
 		RegisterWindowClass(CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS , L"ViewWindow", WindowEventProc);

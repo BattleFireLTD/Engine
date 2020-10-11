@@ -6,6 +6,8 @@ namespace Editor{
 		mTopMargin = 0;
 		mBottomMargin = 0;
 		mIntersectPos = UINodeIntersectPosNone;
+		mHorizontalLocationCatagory = kUILocationCatagoryNone;
+		mVerticalLocationCatagory = kUILocationCatagoryNone;
 		mOnTouchBegin = nullptr;
 		mOnTouchEnd = nullptr;
 		mOnTouchCanceled = nullptr;
@@ -51,6 +53,10 @@ namespace Editor{
 		}
 	}
 	void UINode::Draw(Gdiplus::Graphics&painter){
+	}
+	void UINode::SetAnchor(float centerX, float centerY) {
+		mCenterPosX = centerX;
+		mCenterPosY = centerY;
 	}
 	void UINode::SetRect(Gdiplus::Rect &rect){
 		mRect = rect;
@@ -103,5 +109,40 @@ namespace Editor{
 	}
 	void UINode::OnTouchLeave(int x, int y, int touch_id /* = 0 */) {
 
+	}
+	void UINode::OnContainerSizeChanged(int width, int height) {
+		int new_x_pos = mRect.X;
+		int new_y_pos = mRect.Y;
+		switch (mHorizontalLocationCatagory){
+		case Editor::UINode::kUILocationCatagoryRelativeToRight:
+			new_x_pos = width - int(mCenterPosX) - mRect.Width/2;
+			break;
+		case Editor::UINode::kUILocationCatagoryPercentageAbsolute:
+		case Editor::UINode::kUILocationCatagoryPercentageRelativeToLeft:
+		case Editor::UINode::kUILocationCatagoryPercentageRelativeToRight:
+			new_x_pos = int(width * mCenterPosX) - mRect.Width / 2;
+			break;
+		}
+		switch (mVerticalLocationCatagory){
+		case Editor::UINode::kUILocationCatagoryRelativeToBottom:
+			new_y_pos = height - int(mCenterPosY) - mRect.Height / 2;
+			break;
+		case Editor::UINode::kUILocationCatagoryPercentageAbsolute:
+		case Editor::UINode::kUILocationCatagoryPercentageRelativeToTop:
+		case Editor::UINode::kUILocationCatagoryPercentageRelativeToBottom:
+			new_y_pos = int(height * mCenterPosY) - mRect.Height / 2;
+			break;
+		}
+		mRect.X = new_x_pos;
+		mRect.Y = new_y_pos;
+	}
+	void UINode::OnContainerSizeChangedRecursively(int width, int height) {
+		OnContainerSizeChanged(width, height);
+		if (mChild != nullptr) {
+			Child<UINode>()->OnContainerSizeChangedRecursively(width, height);
+		}
+		if (mRightSibling != nullptr) {
+			RightSibling<UINode>()->OnContainerSizeChangedRecursively(width, height);
+		}
 	}
 }

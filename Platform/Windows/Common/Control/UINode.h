@@ -10,10 +10,31 @@ namespace Editor{
 	};
 	class UINode : public Alice::TTree {
 	public:
+		enum UILocationCatagory {
+			kUILocationCatagoryNone,
+			kUILocationCatagoryAbsolute,
+			kUILocationCatagoryRelativeToLeft,
+			kUILocationCatagoryRelativeToRight,
+			kUILocationCatagoryRelativeToTop,
+			kUILocationCatagoryRelativeToBottom,
+			kUILocationCatagoryPercentageAbsolute,
+			kUILocationCatagoryPercentageRelativeToLeft,
+			kUILocationCatagoryPercentageRelativeToRight,
+			kUILocationCatagoryPercentageRelativeToTop,
+			kUILocationCatagoryPercentageRelativeToBottom,
+			lUILocationCatagoryCount
+		};
+	public:
 		UINode();
 		UINodeIntersectPos mIntersectPos;
+		UILocationCatagory mHorizontalLocationCatagory, mVerticalLocationCatagory;
+		float mCenterPosX, mCenterPosY;
 	public:
 		void DrawRecursively(Gdiplus::Graphics&painter);
+		void SetHorizontalLocationCatagory(UILocationCatagory catagory) { mHorizontalLocationCatagory = catagory; }
+		void SetVerticalLocationCatagory(UILocationCatagory catagory) { mVerticalLocationCatagory = catagory; }
+		void SetLocationCatagory(UILocationCatagory h, UILocationCatagory v) { mHorizontalLocationCatagory = h; mVerticalLocationCatagory = v; }
+		void SetAnchor(float centerX,float centerY);
 		virtual void Draw(Gdiplus::Graphics&painter);
 		virtual void SetRect(Gdiplus::Rect &rect);
 		virtual void SetPos(int x,int y);
@@ -29,6 +50,8 @@ namespace Editor{
 		virtual void OnTouchLeave(int x, int y, int touch_id = 0);
 		virtual void OnClicked(int x, int y, int touch_id = 0);
 		virtual void ProcessEvent(int nCommandID) {}
+		virtual void OnContainerSizeChanged(int width, int height);
+		virtual void OnContainerSizeChangedRecursively(int width, int height);
 		void SetOnTouchBeginHandler(VOID_VOID_PTR foo);
 		void SetOnTouchEndHandler(VOID_VOID_PTR foo);
 		void SetOnTouchMoveHandler(VOID_VOID_PTR foo);

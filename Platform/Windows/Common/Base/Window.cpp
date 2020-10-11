@@ -88,6 +88,12 @@ namespace Editor
 	{
 		mRect.Width = LOWORD(lParam);
 		mRect.Height = HIWORD(lParam);
+		HWND cWnd = GetWindow(mhWnd, GW_CHILD);
+		while (cWnd != nullptr) {
+			BaseWindow*vw = WindowInstance<BaseWindow>(cWnd);
+			vw->OnParentResized(mRect.Width, mRect.Height);
+			cWnd = GetNextWindow(cWnd, GW_HWNDNEXT);
+		}
 	}
 
 	void BaseWindow::OnMoving(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */) {

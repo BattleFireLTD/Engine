@@ -19,7 +19,7 @@ namespace Editor {
 		}
 		Gdiplus::Graphics painter(mBKGDC);
 		Gdiplus::SolidBrush brush(mBKGColor);
-		painter.FillRectangle(&brush, 0, mMarginTop, mRect.Width, mRect.Height - mMarginTop);
+		painter.FillRectangle(&brush, 0, mMarginTop, mRect.Width, mRect.Height);
 		DrawFrame(painter);
 		DrawNCUI(painter);
 		DrawContent(painter);
@@ -35,7 +35,7 @@ namespace Editor {
 		HWND cWnd = GetWindow(mhWnd, GW_CHILD);
 		while (cWnd != nullptr) {
 			BaseWindow*vw = WindowInstance<BaseWindow>(cWnd);
-			vw->OnParentResized(mRect.Width, mRect.Height);
+			vw->OnParentResized(mRect.Width-mMarginLeft-mMarginRight, mRect.Height-mMarginTop-mMarginBottom);
 			cWnd = GetNextWindow(cWnd, GW_HWNDNEXT);
 		}
 	}
