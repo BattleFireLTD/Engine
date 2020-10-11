@@ -15,5 +15,4 @@ Visual Studio 2017
 3.cmake ..
 
 # Screen Shot
-
-![编辑器截图](http://chuantu.xyz/t6/740/1598907839x-1224475120.jpg "区块链")
+![编辑器截图](https://i.postimg.cc/yYfVQrDw/1.png "编辑器截图")
