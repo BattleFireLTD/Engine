@@ -10,6 +10,12 @@ namespace Editor {
 		mUIRoot = nullptr;
 		mLastTouchObject = nullptr;
 		mLastHoverObject = nullptr;
+
+		mLeftSiblingWindows = nullptr;
+		mRightSiblingWindows = nullptr;
+		mTopSiblingWindows = nullptr;
+		mBottomSiblingWindows = nullptr;
+
 		SetWindowName("ViewWindow");
 	}
 	void ViewWindow::DrawContent(Gdiplus::Graphics&painter) {
@@ -17,18 +23,30 @@ namespace Editor {
 			mUIRoot->DrawRecursively(painter);
 		}
 	}
+	void ViewWindow::OnParentPaint(Gdiplus::Graphics&painter) {
+		RECT parent_rect, self_rect;
+		GetWindowRect(mParent->GetHwnd(), &parent_rect);
+		GetWindowRect(mhWnd, &self_rect);
+		painter.TranslateTransform(float(self_rect.left - parent_rect.left), float(self_rect.top - parent_rect.top));
+		painter.SetClip(Gdiplus::Rect(0, 0, mRect.Width, mRect.Height));
+		painter.Clear(mBKGColor);
+		painter.ResetClip();
+		if (mUIRoot != nullptr) {
+			mUIRoot->DrawRecursively(painter);
+		}
+		painter.ResetTransform();
+	}
+	void ViewWindow::OnClearBKG(Gdiplus::Graphics&painter) {
+		painter.Clear(mBKGColor);
+	}
 	void ViewWindow::OnCommand(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */) {
 		UINT nNotify = HIWORD(wParam);
 		UINT commandID = LOWORD(wParam);
 		mUIRoot->ProcessEvent(commandID);
 	}
 	void ViewWindow::OnSize(WPARAM wParam, LPARAM lParam, void*reserved) {
-		RECT rect;
-		GetWindowRect(mhWnd, &rect);
-		mRect.X = rect.left;
-		mRect.Y = rect.top;
-		mRect.Width = rect.right - rect.left;
-		mRect.Height = rect.bottom - rect.top;
+		GetRelativeWindowRect(mRect);
+		//MoveWindow(0,20, 1280, mRect.Height);
 	}
 	void ViewWindow::OnLButtonDown(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */)
 	{
@@ -41,7 +59,7 @@ namespace Editor {
 		if (node != nullptr) {
 			node->OnTouchBegin(x, y);
 			mLastTouchObject = node;
-			InvalidateRect(mhWnd, nullptr, true);
+			MarkDirty();
 			SetCapture(mhWnd);
 		}
 		else {
@@ -58,14 +76,14 @@ namespace Editor {
 		}
 		if (node != nullptr&&node == mLastTouchObject) {
 			node->OnTouchEnd(x, y);
-			InvalidateRect(mhWnd, nullptr, true);
+			MarkDirty();
 			ReleaseCapture();
 		}
 		else {
 			if (mLastTouchObject != nullptr) {
 				mLastTouchObject->OnTouchCanceled(x, y);
 				mLastTouchObject = nullptr;
-				InvalidateRect(mhWnd, nullptr, true);
+				MarkDirty();
 				ReleaseCapture();
 			}
 			else {
@@ -88,14 +106,14 @@ namespace Editor {
 				}
 				mLastHoverObject = node;
 				mLastHoverObject->OnTouchEnter(x, y);
-				InvalidateRect(mhWnd, nullptr, true);
+				MarkDirty();
 			}
 		}
 		else {
 			if (mLastHoverObject != nullptr) {
 				mLastHoverObject->OnTouchLeave(x, y);
 				mLastHoverObject = nullptr;
-				InvalidateRect(mhWnd, nullptr, true);
+				MarkDirty();
 			}
 		}
 		DoubleBufferedWindow::OnMouseMove(wParam, lParam, reserved);
@@ -106,13 +124,13 @@ namespace Editor {
 			int y = HIWORD(lParam);
 			mLastHoverObject->OnTouchLeave(x, y);
 			mLastHoverObject = nullptr;
-			InvalidateRect(mhWnd, nullptr, true);
+			MarkDirty();
 		}
 		DoubleBufferedWindow::OnMouseLeave(wParam, lParam, reserved);
 	}
 
 	void ViewWindow::Init(BaseWindow*parent){
-		DWORD windowStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+		DWORD windowStyle = WS_CHILD | WS_THICKFRAME ;
 		mhWnd = CreateWindowEx(NULL, L"ViewWindow", NULL, windowStyle, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT, parent->GetHwnd(), NULL, GetModuleHandle(NULL), nullptr);
 		SetWindowLongPtr(mhWnd, GWL_USERDATA, (LONG_PTR)this);
 		mHDC = GetWindowDC(mhWnd);
@@ -132,22 +150,119 @@ namespace Editor {
 		mbFixedWidth = width == -1 ? false : true;
 		mbFixedHeight = height == -1 ? false : true;
 	}
-	void ViewWindow::OnParentResized(int width, int height) {
-		int x = 0, y = 0, w = width, h = height;
-		if (mbFixedPos){
-			x = mFixedRect.X;
-			y = mFixedRect.Y;
+	void ViewWindow::OnParentResized(int width, int height, int deltaX , int deltaY , BaseWindow::WindowResizeDirection direction) {
+		//int x = 0, y = 0, w = width, h = height;
+		//if (mbFixedPos){
+		//	x = mFixedRect.X;
+		//	y = mFixedRect.Y;
+		//}
+		//if (mbFixedWidth){
+		//	w = mFixedRect.Width;
+		//}
+		//if (mbFixedHeight){
+		//	h = mFixedRect.Height;
+		//}
+		//if (w==mRect.Width&&h==mRect.Height){
+		//	return;
+		//}
+		//if (mUIRoot != nullptr) {
+		//	mUIRoot->OnContainerSizeChangedRecursively(w, h);
+		//}
+		//MoveWindow(x, y, w, h);
+	}
+	void ViewWindow::TryToExtentWindowHorizontallyFromLeft(int & deltaX) {
+		deltaX = 0;
+	}
+	void ViewWindow::TryToReduceWindowHorizontallyFromLeft(int & deltaX) {
+		//Gdiplus::Rect rect;
+		//GetRelativeWindowRect(rect);
+		//MoveWindow(rect.X, rect.Y, rect.Width + deltaX, rect.Height);
+		//deltaX = 0;
+	}
+	void ViewWindow::TryToExtentWindowHorizontallyFromRight(int & deltaX) {
+		deltaX = 0;
+	}
+	void ViewWindow::TryToReduceWindowHorizontallyFromRight(int & deltaX) {
+
+	}
+	void ViewWindow::TryToExtentWindowVerticallyFromTop(int & deltaY) {
+
+	}
+	void ViewWindow::TryToReduceWindowVerticallyFromTop(int & deltaY) {
+
+	}
+	void ViewWindow::TryToExtentWindowVerticallyFromBottom(int & deltaY) {
+
+	}
+	void ViewWindow::TryToReduceWindowVerticallyFromBottom(int & deltaY) {
+
+	}
+	void ViewWindow::ExtentWindowHorizontallyFromLeft(int deltaX) {
+		Gdiplus::Rect rect;
+		GetRelativeWindowRect(rect);
+		MoveWindow(rect.X, rect.Y, rect.Width + deltaX, rect.Height);
+	}
+	void ViewWindow::ReduceWindowHorizontallyFromLeft(int deltaX) {
+		//Gdiplus::Rect rect;
+		//GetRelativeWindowRect(rect);
+		//MoveWindow(rect.X, rect.Y, rect.Width + deltaX, rect.Height);
+		//deltaX = 0;
+	}
+	void ViewWindow::ExtentWindowHorizontallyFromRight(int deltaX) {
+		Gdiplus::Rect rect;
+		GetRelativeWindowRect(rect);
+		MoveWindow(rect.X, rect.Y, rect.Width + deltaX, rect.Height);
+		Debug("%s ExtentWindowHorizontallyFromRight", mName);
+	}
+	void ViewWindow::ReduceWindowHorizontallyFromRight(int deltaX) {
+
+	}
+	void ViewWindow::ExtentWindowVerticallyFromTop(int deltaY) {
+
+	}
+	void ViewWindow::ReduceWindowVerticallyFromTop(int deltaY) {
+
+	}
+	void ViewWindow::ExtentWindowVerticallyFromBottom(int deltaY) {
+
+	}
+	void ViewWindow::ReduceWindowVerticallyFromBottom(int deltaY) {
+
+	}
+	void ViewWindow::MarkDirty() {
+		mParent->MarkDirty();
+	}
+	void ViewWindow::AddWindowAtLeft(BaseWindow*window) {
+		if (mLeftSiblingWindows == nullptr) {
+			mLeftSiblingWindows = new WindowHolder(window);
 		}
-		if (mbFixedWidth){
-			w = mFixedRect.Width;
+		else {
+			mLeftSiblingWindows->PushBack(new WindowHolder(window));
 		}
-		if (mbFixedHeight){
-			h = mFixedRect.Height;
+	}
+	void ViewWindow::AddWindowAtRight(BaseWindow*window) {
+		if (mRightSiblingWindows == nullptr) {
+			mRightSiblingWindows = new WindowHolder(window);
 		}
-		if (mUIRoot != nullptr) {
-			mUIRoot->OnContainerSizeChangedRecursively(w, h);
+		else {
+			mRightSiblingWindows->PushBack(new WindowHolder(window));
 		}
-		MoveWindow(x, y, w, h);
+	}
+	void ViewWindow::AddWindowAtTop(BaseWindow*window) {
+		if (mTopSiblingWindows == nullptr) {
+			mTopSiblingWindows = new WindowHolder(window);
+		}
+		else {
+			mTopSiblingWindows->PushBack(new WindowHolder(window));
+		}
+	}
+	void ViewWindow::AddWindowAtBottom(BaseWindow*window) {
+		if (mBottomSiblingWindows == nullptr) {
+			mBottomSiblingWindows = new WindowHolder(window);
+		}
+		else {
+			mBottomSiblingWindows->PushBack(new WindowHolder(window));
+		}
 	}
 	void ViewWindow::InitWindowClasses() {
 		RegisterWindowClass(CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS , L"ViewWindow", WindowEventProc);

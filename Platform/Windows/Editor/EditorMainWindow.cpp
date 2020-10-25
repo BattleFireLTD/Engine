@@ -7,10 +7,14 @@
 #include "Runtime/Debugger/Logger.h"
 #include "Runtime/String/StringUtils.h"
 #include "Runtime/IO/FileSystem.h"
+#include "TopMenuWindow/TopMenuWindow.h"
+#include "TopToolsWindow/TopToolsWindow.h"
+#include "HierarchyWindow/HierarchyWindow.h"
+#include "ProjectWindow/ProjectWindow.h"
+#include "SceneWindow/SceneWindow.h"
+#include "InspectorWindow/InspectorWindow.h"
 #pragma comment(lib,"dwmapi.lib")
 namespace Editor {
-	void EditorMainWindow::DrawContent(Gdiplus::Graphics&painter){
-	}
 	void EditorMainWindow::OnMouseWheel(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */) {
 	}
 	void EditorMainWindow::OnSize(WPARAM wParam, LPARAM lParam, void*reserved) {
@@ -20,12 +24,13 @@ namespace Editor {
 	void EditorMainWindow::OnLButtonDown(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */){
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
-		if (y<mMarginTop){
+		if (y<mTopNCSize){
 			UINode*node = mUIRoot->Intersect(x, y);
 			if (node != nullptr && node == mCloseBtn) {
 				node->OnTouchBegin(x,y);
 				mLastTouchObject = node;
-				InvalidateRect(mhWnd, nullptr, true);
+				//Debug("EditorMainWindow::OnLButtonDown OnTouchBegin InvalidateRect");
+				InvalidateRect(mhWnd, nullptr, false);
 				SetCapture(mhWnd);
 			}
 			else {
@@ -39,14 +44,16 @@ namespace Editor {
 		UINode*node = mUIRoot->Intersect(x, y);
 		if (node != nullptr&&node==mLastTouchObject) {
 			node->OnTouchEnd(x, y);
-			InvalidateRect(mhWnd, nullptr, true);
+			//Debug("EditorMainWindow::OnLButtonUp OnTouchEnd InvalidateRect");
+			InvalidateRect(mhWnd, nullptr, false);
 			ReleaseCapture();
 		}
 		else {
 			if (mLastTouchObject != nullptr) {
 				mLastTouchObject->OnTouchCanceled(x, y);
 				mLastTouchObject = nullptr;
-				InvalidateRect(mhWnd, nullptr, true);
+				//Debug("EditorMainWindow::OnLButtonUp OnTouchCanceled InvalidateRect");
+				InvalidateRect(mhWnd, nullptr, false);
 				ReleaseCapture();
 			}
 			else {
@@ -65,14 +72,23 @@ namespace Editor {
 				}
 				mLastHoverObject = node;
 				mLastHoverObject->OnTouchEnter(x, y);
-				InvalidateRect(mhWnd, nullptr, true);
+				//Debug("EditorMainWindow::OnMouseMove mLastHoverObject->OnTouchEnter");
+				RECT rect = {
+					0,
+					0,
+					mRect.Width,
+					mTopNCSize
+				};
+				//InvalidateRect(mhWnd, &rect, false);
+				InvalidateRect(mhWnd, nullptr, false);
 			}
 		}
 		else {
 			if (mLastHoverObject!=nullptr){
 				mLastHoverObject->OnTouchLeave(x, y);
 				mLastHoverObject = nullptr;
-				InvalidateRect(mhWnd, nullptr, true);
+				//Debug("EditorMainWindow::OnMouseMove mLastHoverObject->OnTouchLeave");
+				InvalidateRect(mhWnd, nullptr, false);
 			}
 		}
 		MainWindow::OnMouseMove(wParam, lParam, reserved);
@@ -83,7 +99,8 @@ namespace Editor {
 			int y = HIWORD(lParam);
 			mLastHoverObject->OnTouchLeave(x, y);
 			mLastHoverObject = nullptr;
-			InvalidateRect(mhWnd, nullptr, true);
+			//Debug("EditorMainWindow::OnMouseLeave OnMouseLeave InvalidateRect 2");
+			InvalidateRect(mhWnd, nullptr, false);
 		}
 		MainWindow::OnMouseLeave(wParam, lParam, reserved);
 	}
@@ -119,7 +136,8 @@ namespace Editor {
 		}
 	}
 	void EditorMainWindow::Init() {
-		DWORD windowStyle = WS_OVERLAPPED | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+		SetWindowName("EditorMainWindow");
+		DWORD windowStyle = WS_OVERLAPPED;// | WS_CLIPCHILDREN;
 		mhWnd = CreateWindowEx(NULL, L"MainWindow", L"BattleFire Editor", windowStyle, 0, 0, 32, 32, NULL, NULL, WinEnviroment::Instance(), NULL);
 		SetWindowLongPtr(mhWnd, GWL_USERDATA, (LONG_PTR)this);
 		mHDC = GetWindowDC(mhWnd);
@@ -127,7 +145,7 @@ namespace Editor {
 		mBKGColor = Gdiplus::Color(30, 30, 30);
 		mTitle = new Editor::StaticText;
 		mTitle->SetAligning(Editor::AligningModeLeft);
-		mTitle->SetRect(12, 6, 1286-mMarginLeft-mMarginRight, mMarginTop);
+		mTitle->SetRect(12, 3, 1286-mLeftNCSize-mRightNCSize, mTopNCSize);
 		mTitle->SetText("Engine - None");
 		mTitle->SetTextColor(0, 150, 200);
 		mUIRoot = mTitle;
@@ -141,90 +159,61 @@ namespace Editor {
 		mUIRoot->AppendChild(mCloseBtn);
 		mAccel = WinEnviroment::InitAccel();
 		mLastHoverObject = nullptr;
-		InitTopMenu();
-		InitTopView();
+		TopMenuWindow::Singleton()->Init(this);
+		TopToolsWindow::Singleton()->Init(this);
+		HierarchyWindow::Singleton()->Init(this);
+		ProjectWindow::Singleton()->Init(this);
+		SceneWindow::Singleton()->Init(this);
+		InspectorWindow::Singleton()->Init(this);
+		InitSubWindows();
 	}
-	void EditorMainWindow::InitTopMenu() {
-		ViewWindow*top_menu_window = new ViewWindow;
-		top_menu_window->SetWindowName("TopMenuWindow");
-		top_menu_window->Init(this);
-		top_menu_window->SetBkgColor(Gdiplus::Color(255, 255, 255));
+	void EditorMainWindow::InitSubWindows() {
+		ViewWindow*top_menu_window = TopMenuWindow::Singleton()->GetViewWindow();
+		ViewWindow*tools_window = TopToolsWindow::Singleton()->GetViewWindow();
+		ViewWindow*hierarchy_window = HierarchyWindow::Singleton()->GetViewWindow();
+		ViewWindow*project_window = ProjectWindow::Singleton()->GetViewWindow();
+		ViewWindow*scene_window = SceneWindow::Singleton()->GetViewWindow();
+		ViewWindow*inspector_window = InspectorWindow::Singleton()->GetViewWindow();
 
-		PopupMenuButton*popupmenu = new (kMemEditorId)PopupMenuButton(top_menu_window->GetHwnd());
-		popupmenu->SetText("File");
-		popupmenu->SetAligning(AligningModeMiddle);
-		popupmenu->SetRect(0, 0, 50, 20);
-		popupmenu->SetBkgColorRect(0, 0, 50, 20);
-		top_menu_window->AppendUI(popupmenu);
-		popupmenu->AppendMenuOption(Menu_Option_File_NewProject, TEXT("New Project"), []()->void { Debug("new project"); });
-		popupmenu->AppendMenuOption(Menu_Option_File_OpenProject, TEXT("Open Project"), []()->void { Debug("open project"); });
-		popupmenu->AppendMenuOption(Menu_Option_File_NewScene, TEXT("New Scene"), []()->void { Debug("new scene"); });
-		popupmenu->AppendMenuOption(Menu_Option_File_SaveCurrentScene, TEXT("Save Scene"), []()->void { Debug("save scene"); });
-		popupmenu->AppendMenuOption(Menu_Option_File_Build, TEXT("Build Run"), []()->void { Debug("build run"); });
-		popupmenu->AppendMenuOption(Menu_Option_File_Exit, TEXT("Exit"), []()->void { Debug("exit"); });
-		popupmenu = new (kMemEditorId)PopupMenuButton(top_menu_window->GetHwnd());
-		popupmenu->SetText("Edit");
-		popupmenu->SetAligning(AligningModeMiddle);
-		popupmenu->SetRect(50, 0, 50, 20);
-		popupmenu->SetBkgColorRect(50, 0, 50, 20);
-		top_menu_window->AppendUI(popupmenu);
-		popupmenu->AppendMenuOption(Menu_Option_Edit_Duplicate, TEXT("Duplicate"), []()->void { Debug("Duplicate"); });
-		popupmenu->AppendMenuOption(Menu_Option_Edit_Undo, TEXT("Undo"), []()->void { Debug("Undo"); });
-		popupmenu = new (kMemEditorId)PopupMenuButton(top_menu_window->GetHwnd());
-		popupmenu->SetText("Component");
-		popupmenu->SetAligning(AligningModeMiddle);
-		popupmenu->SetRect(100, 0, 80, 20);
-		popupmenu->SetBkgColorRect(100, 0, 80, 20);
-		top_menu_window->AppendUI(popupmenu);
+		//sub view window location
+		AddChildWindowAt(kChildWindowLocationTopEdge, top_menu_window);
 
-		popupmenu->AppendMenuOption(Menu_Option_Component_ImageSprite, TEXT("ImageSprite"), []()->void { Debug("ImageSprite"); });
-		popupmenu->AppendMenuOption(Menu_Option_Component_Camera, TEXT("Camera"), []()->void { Debug("Camera"); });
-		popupmenu->AppendMenuOption(Menu_Option_Component_Label, TEXT("Label"), []()->void { Debug("Label"); });
-		popupmenu->AppendMenuOption(Menu_Option_Component_Animator, TEXT("Animator"), []()->void { Debug("Animator"); });
-		popupmenu->AppendMenuOption(Menu_Option_Component_ImageSprite9, TEXT("ImageSprite9"), []()->void { Debug("ImageSprite9"); });
-		popupmenu->AppendMenuOption(Menu_Option_Component_Button, TEXT("Button"), []()->void { Debug("Button"); });
-		popupmenu->AppendMenuOption(Menu_Option_Component_Particle, TEXT("Particle"), []()->void { Debug("Particle"); });
-		popupmenu->AppendMenuOption(Menu_Option_Component_AudioSource, TEXT("AudioSource"), []()->void { Debug("AudioSource"); });
-		popupmenu->AppendMenuOption(Menu_Option_Component_Physic2DComponent, TEXT("Physic2DComponent"), []()->void { Debug("Physic2DComponent"); });
-		popupmenu = new (kMemEditorId)PopupMenuButton(top_menu_window->GetHwnd());
-		popupmenu->SetText("Window");
-		popupmenu->SetAligning(AligningModeMiddle);
-		popupmenu->SetRect(180, 0, 60, 20);
-		popupmenu->SetBkgColorRect(180, 0, 60, 20);
-		top_menu_window->AppendUI(popupmenu);
-		popupmenu->AppendMenuOption(Menu_Option_Window_Animation, TEXT("Animation"), []()->void { Debug("Animation"); });
-		popupmenu->AppendMenuOption(Menu_Option_Window_Animator, TEXT("Animator"), []()->void { Debug("Animator"); });
-		popupmenu->AppendMenuOption(Menu_Option_Window_Atlas, TEXT("Atlas"), []()->void { Debug("Atlas"); });
-		popupmenu->AppendMenuOption(Menu_Option_Window_Profiler, TEXT("Profiler"), []()->void { Debug("Profiler"); });
-		popupmenu->AppendMenuOption(Menu_Option_Window_Physics, TEXT("Physics"), []()->void { Debug("Physics"); });
-		top_menu_window->FixedWindow(0, 0, -1, 20);
-		top_menu_window->MoveWindow(0, 0, 1280, 20);
-		top_menu_window->Show();
-	}
-	void EditorMainWindow::InitTopView() {
-		ViewWindow*top_view_window = new ViewWindow;
-		top_view_window->SetWindowName("TopViewWindow");
-		top_view_window->Init(this);
-		top_view_window->SetBkgColor(Gdiplus::Color(30, 30, 30));
-		top_view_window->FixedWindow(0, 20, -1, 50);
-		top_view_window->MoveWindow(0, 20, 1280, 50);
-		top_view_window->Show();
-		TwoStateButton*play_stop_button = new TwoStateButton;
-		play_stop_button->SetImageData(WinResources::Singleton()->GetImageData("PlayNormal.png"), WinResources::Singleton()->GetImageData("PlayDown.png"));
-		play_stop_button->SetRect(100, 9, 0, 0);
-		play_stop_button->SetLocationCatagory(UINode::kUILocationCatagoryPercentageAbsolute, UINode::kUILocationCatagoryRelativeToTop);
-		play_stop_button->SetAnchor(0.5f, 9.0f);
-		play_stop_button->SetOnClickedHandler([](void*ptr)->void {
-			TwoStateButton * btn = (TwoStateButton*)ptr;
-			switch (btn->GetState()){
-			case TwoStateButton::kTwoStateButtonStateOne:
-				Debug("play stop button state : stopped");
-				break;
-			case TwoStateButton::kTwoStateButtonStateTwo:
-				Debug("play stop button state : playing");
-				break;
-			}
-		});
-		top_view_window->AppendUI(play_stop_button);
+		AddChildWindowAt(kChildWindowLocationLeftEdge, top_menu_window);
+		AddChildWindowAt(kChildWindowLocationLeftEdge, tools_window);
+		AddChildWindowAt(kChildWindowLocationLeftEdge, hierarchy_window);
+		AddChildWindowAt(kChildWindowLocationLeftEdge, project_window);
+
+		AddChildWindowAt(kChildWindowLocationRightEdge, top_menu_window);
+		AddChildWindowAt(kChildWindowLocationRightEdge, tools_window);
+		AddChildWindowAt(kChildWindowLocationRightEdge, inspector_window);
+
+		AddChildWindowAt(kChildWindowLocationBottomEdge, project_window);
+		AddChildWindowAt(kChildWindowLocationBottomEdge, inspector_window);
+		
+		//view window relationship
+		top_menu_window->AddWindowAtBottom(tools_window);
+		tools_window->AddWindowAtTop(top_menu_window);
+
+		tools_window->AddWindowAtBottom(hierarchy_window);
+		tools_window->AddWindowAtBottom(scene_window);
+		tools_window->AddWindowAtBottom(inspector_window);
+		hierarchy_window->AddWindowAtBottom(tools_window);
+		scene_window->AddWindowAtBottom(tools_window);
+		inspector_window->AddWindowAtBottom(tools_window);
+
+		hierarchy_window->AddWindowAtBottom(project_window);
+		project_window->AddWindowAtTop(hierarchy_window);
+
+		hierarchy_window->AddWindowAtRight(scene_window);
+		scene_window->AddWindowAtLeft(hierarchy_window);
+
+		project_window->AddWindowAtTop(scene_window);
+		scene_window->AddWindowAtBottom(project_window);
+
+		project_window->AddWindowAtRight(inspector_window);
+		inspector_window->AddWindowAtLeft(project_window);
+
+		scene_window->AddWindowAtRight(inspector_window);
+		inspector_window->AddWindowAtLeft(scene_window);
 	}
 }

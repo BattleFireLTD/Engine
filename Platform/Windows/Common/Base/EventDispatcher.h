@@ -28,10 +28,15 @@ namespace Editor
 		virtual void OnCloseWindow(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual void OnFocus(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual void OnSize(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
+		virtual LRESULT OnSizing(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual void OnMove(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual void OnMoving(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual void OnGetMinMaxInfo(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
-		virtual void OnPaint();
+		virtual void OnPaint(const Gdiplus::Rect& rect_need_update);
+		virtual void OnPaintNoUpdateRect() {}
+		virtual void OnPostPaint() {}
+		virtual void OnEraseBKG() {}
+		virtual void OnClearBKG(Gdiplus::Graphics&painter) {};
 		virtual void OnTimer(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual void OnCommand(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual void OnDropFiles(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);

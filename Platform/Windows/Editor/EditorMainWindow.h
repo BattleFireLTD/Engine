@@ -21,11 +21,9 @@ namespace Editor {
 		void OnIMEChar(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		void OnCompositionIMEString(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		void OnMouseWheel(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
-		void DrawContent(Gdiplus::Graphics&painter);
 		void OnSize(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		void OnCommand(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
-		void InitTopMenu();
-		void InitTopView();
+		void InitSubWindows();
 	public:
 		HACCEL mAccel;
 		void Init();

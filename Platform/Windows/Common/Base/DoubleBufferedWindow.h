@@ -7,8 +7,10 @@ namespace Editor{
 		HBITMAP mBKGBMP;
 		int mBufferWidth, mBufferHeight;
 	protected:
-		virtual void OnPaint();
+		virtual void OnPaint(const Gdiplus::Rect & rect_need_update);
+		void OnPaintNoUpdateRect();
 		virtual void OnEndPaint();
+		virtual LRESULT OnNCPAINT(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 	public:
 		BaseWindow * mChild;
 		DoubleBufferedWindow();

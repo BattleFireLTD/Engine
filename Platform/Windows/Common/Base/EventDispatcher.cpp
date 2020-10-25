@@ -1,4 +1,5 @@
 #include "EventDispatcher.h"
+#include "Runtime/Debugger/Logger.h"
 namespace Editor
 {
 	EventDispatcher::EventDispatcher() :mbMouseLeaved(false)
@@ -56,6 +57,11 @@ namespace Editor
 
 	}
 
+	LRESULT EventDispatcher::OnSizing(WPARAM wParam, LPARAM lParam, void*reserved)
+	{
+		return DefWindowProc(mhWnd, WM_SIZING, wParam, lParam);
+	}
+
 	void EventDispatcher::OnMove(WPARAM wParam, LPARAM lParam, void*reserved)
 	{
 	}
@@ -69,7 +75,7 @@ namespace Editor
 
 	}
 
-	void EventDispatcher::OnPaint(){
+	void EventDispatcher::OnPaint(const Gdiplus::Rect & rect_need_update){
 	}
 
 	void EventDispatcher::OnTimer(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */)
@@ -177,17 +183,13 @@ namespace Editor
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 
-	LRESULT EventDispatcher::WindowEventProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-	{
+	LRESULT EventDispatcher::WindowEventProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		EventDispatcher*self = (EventDispatcher*)GetWindowLongPtr(hWnd,GWLP_USERDATA);
-		if (self==nullptr)
-		{
+		if (self==nullptr){
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
-		switch (message)
-		{
-		case WM_MOUSEMOVE:
-		{
+		switch (message){
+		case WM_MOUSEMOVE:{
 			POINT pos;
 			GetCursorPos(&pos);
 			RECT rect;
@@ -198,8 +200,7 @@ namespace Editor
 		case WM_MOUSELEAVE:
 			self->OnMouseLeave(wParam, lParam);
 			return 0;
-		case WM_LBUTTONDOWN:
-		{
+		case WM_LBUTTONDOWN:{
 			POINT pos;
 			GetCursorPos(&pos);
 			RECT rect;
@@ -207,8 +208,7 @@ namespace Editor
 			self->OnLButtonDown(wParam, MAKELPARAM(pos.x - rect.left, pos.y - rect.top));
 		}
 		return 0;
-		case WM_LBUTTONUP:
-		{
+		case WM_LBUTTONUP:{
 			POINT pos;
 			GetCursorPos(&pos);
 			RECT rect;
@@ -304,6 +304,8 @@ namespace Editor
 		case WM_SIZE:
 			self->OnSize(wParam, lParam);
 			return 0;
+		case WM_SIZING:
+			return self->OnSizing(wParam, lParam);
 		case WM_MOVE:
 			self->OnMove(wParam, lParam);
 			return 0;
@@ -317,16 +319,16 @@ namespace Editor
 			self->OnTimer(wParam, lParam);
 			return 0;
 		case WM_ERASEBKGND:
-
-			return 0;
-		case WM_PAINT://
-			{
-				RECT rect;
-				if (FALSE != GetUpdateRect(hWnd, &rect, true)) {
+			self->OnEraseBKG();
+			return 1;
+		case WM_PAINT:{
+				RECT invalid_rect;
+				if (GetUpdateRect(hWnd, &invalid_rect, true)) {
 					PAINTSTRUCT ps;
 					HDC hdc = BeginPaint(hWnd, &ps);
-					self->OnPaint();
+					self->OnPaint(Gdiplus::Rect(invalid_rect.left,invalid_rect.top,invalid_rect.right-invalid_rect.left,invalid_rect.bottom-invalid_rect.top));
 					EndPaint(hWnd, &ps);
+					self->OnPostPaint();
 				}
 			}
 			return 0;

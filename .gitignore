@@ -1,3 +1,5 @@
 **/*.vs
 **/*build
 **/*Project
+/External/PrebuiltLibs/x86/Debug/libprotobuf.lib
+/External/PrebuiltLibs/x86/Release/libprotobuf.lib

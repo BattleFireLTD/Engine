@@ -2,6 +2,7 @@
 #include "Platform/Windows/Common/WinResources.h"
 #include "Platform/Windows/Common/ViewWindow.h"
 #include "Platform/Windows/Editor/EditorMainWindow.h"
+#include "Platform/Windows/Common/CursorManager.h"
 #include "Runtime/IO/ResourceManager.h"
 #if _DEBUG
 #pragma comment( linker, "/subsystem:\"console\" /entry:\"WinMainCRTStartup\"")
@@ -36,9 +37,7 @@ void MessageLoop() {
 		while (nIndex < nMsgCount) {
 			if (WM_QUIT == msgs[nIndex].message){
 				isQuit = true;
-			}
-			else
-			{
+			}else{
 				ProcessingMessage(msgs[nIndex]);
 			}
 			nIndex++;
@@ -50,12 +49,13 @@ void MessageLoop() {
 INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 	Editor::WinEnviroment::Init(hInstance);
 	Alice::ResourceManager::Init();
+	Editor::CursorManager::Singleton()->Init();
 	Editor::WinResources::Singleton()->Init("res");
 	Editor::MainWindow::InitWindowClasses();
 	Editor::ViewWindow::InitWindowClasses();
 	gEditorMainWindow = new Editor::EditorMainWindow;
 	gEditorMainWindow->Init();
-	gEditorMainWindow->MoveWindow(0, 0, 1286, 750);
+	gEditorMainWindow->MoveWindow(0, 0, 1286, 752);
 	gEditorMainWindow->Show();
 	MessageLoop();
 	return 0;
