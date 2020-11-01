@@ -11,10 +11,7 @@ namespace Editor {
 		mLastTouchObject = nullptr;
 		mLastHoverObject = nullptr;
 
-		mLeftSiblingWindows = nullptr;
-		mRightSiblingWindows = nullptr;
-		mTopSiblingWindows = nullptr;
-		mBottomSiblingWindows = nullptr;
+		mContainer = nullptr;
 
 		SetWindowName("ViewWindow");
 	}
@@ -28,6 +25,7 @@ namespace Editor {
 		GetWindowRect(mParent->GetHwnd(), &parent_rect);
 		GetWindowRect(mhWnd, &self_rect);
 		painter.TranslateTransform(float(self_rect.left - parent_rect.left), float(self_rect.top - parent_rect.top));
+		//Debug("ViewWindow::OnParentPaint %s %d,%d,%d,%d",mName, self_rect.left - parent_rect.left, self_rect.top - parent_rect.top, mRect.Width, mRect.Height);
 		painter.SetClip(Gdiplus::Rect(0, 0, mRect.Width, mRect.Height));
 		painter.Clear(mBKGColor);
 		painter.ResetClip();
@@ -46,7 +44,6 @@ namespace Editor {
 	}
 	void ViewWindow::OnSize(WPARAM wParam, LPARAM lParam, void*reserved) {
 		GetRelativeWindowRect(mRect);
-		//MoveWindow(0,20, 1280, mRect.Height);
 	}
 	void ViewWindow::OnLButtonDown(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */)
 	{
@@ -150,7 +147,7 @@ namespace Editor {
 		mbFixedWidth = width == -1 ? false : true;
 		mbFixedHeight = height == -1 ? false : true;
 	}
-	void ViewWindow::OnParentResized(int width, int height, int deltaX , int deltaY , BaseWindow::WindowResizeDirection direction) {
+	void ViewWindow::OnParentResized(int width, int height) {
 		//int x = 0, y = 0, w = width, h = height;
 		//if (mbFixedPos){
 		//	x = mFixedRect.X;
@@ -169,65 +166,6 @@ namespace Editor {
 		//	mUIRoot->OnContainerSizeChangedRecursively(w, h);
 		//}
 		//MoveWindow(x, y, w, h);
-	}
-	void ViewWindow::TryToExtentWindowHorizontallyFromLeft(int & deltaX) {
-		deltaX = 0;
-	}
-	void ViewWindow::TryToReduceWindowHorizontallyFromLeft(int & deltaX) {
-		//Gdiplus::Rect rect;
-		//GetRelativeWindowRect(rect);
-		//MoveWindow(rect.X, rect.Y, rect.Width + deltaX, rect.Height);
-		//deltaX = 0;
-	}
-	void ViewWindow::TryToExtentWindowHorizontallyFromRight(int & deltaX) {
-		deltaX = 0;
-	}
-	void ViewWindow::TryToReduceWindowHorizontallyFromRight(int & deltaX) {
-
-	}
-	void ViewWindow::TryToExtentWindowVerticallyFromTop(int & deltaY) {
-
-	}
-	void ViewWindow::TryToReduceWindowVerticallyFromTop(int & deltaY) {
-
-	}
-	void ViewWindow::TryToExtentWindowVerticallyFromBottom(int & deltaY) {
-
-	}
-	void ViewWindow::TryToReduceWindowVerticallyFromBottom(int & deltaY) {
-
-	}
-	void ViewWindow::ExtentWindowHorizontallyFromLeft(int deltaX) {
-		Gdiplus::Rect rect;
-		GetRelativeWindowRect(rect);
-		MoveWindow(rect.X, rect.Y, rect.Width + deltaX, rect.Height);
-	}
-	void ViewWindow::ReduceWindowHorizontallyFromLeft(int deltaX) {
-		//Gdiplus::Rect rect;
-		//GetRelativeWindowRect(rect);
-		//MoveWindow(rect.X, rect.Y, rect.Width + deltaX, rect.Height);
-		//deltaX = 0;
-	}
-	void ViewWindow::ExtentWindowHorizontallyFromRight(int deltaX) {
-		Gdiplus::Rect rect;
-		GetRelativeWindowRect(rect);
-		MoveWindow(rect.X, rect.Y, rect.Width + deltaX, rect.Height);
-		Debug("%s ExtentWindowHorizontallyFromRight", mName);
-	}
-	void ViewWindow::ReduceWindowHorizontallyFromRight(int deltaX) {
-
-	}
-	void ViewWindow::ExtentWindowVerticallyFromTop(int deltaY) {
-
-	}
-	void ViewWindow::ReduceWindowVerticallyFromTop(int deltaY) {
-
-	}
-	void ViewWindow::ExtentWindowVerticallyFromBottom(int deltaY) {
-
-	}
-	void ViewWindow::ReduceWindowVerticallyFromBottom(int deltaY) {
-
 	}
 	void ViewWindow::MarkDirty() {
 		mParent->MarkDirty();

@@ -7,66 +7,14 @@ namespace Editor {
 		mUIRoot = nullptr;
 		mLastTouchObject = nullptr;
 		mTitleBKGColor = Gdiplus::Color(200, 200, 200);
-		mLeftMostChildren = nullptr;
-		mRightMostChildren = nullptr;
-		mTopMostChildren = nullptr;
-		mBottomMostChildren = nullptr;
+		mContainer = nullptr;
 		SetWindowName("MainWindow");
-	}
-	BaseWindow::WindowResizeDirection MainWindow::OnPostSizeChanged(int &deltaX, int &deltaY) {
-		BaseWindow::WindowResizeDirection d = BaseWindow::kWindowResizeDirectionNone;
-
-		RECT rect;
-		GetWindowRect(mhWnd, &rect);
-		int new_width = rect.right - rect.left;
-		int new_height = rect.bottom - rect.top;
-		if (mRect.X != rect.left) {
-			d = BaseWindow::kWindowResizeDirectionFromLeft;
-		}
-		if (mRect.Y!=rect.top){
-			if (d==BaseWindow::kWindowResizeDirectionFromLeft){
-				d = BaseWindow::kWindowResizeDirectionFromLeftTop;
-			}
-			else {
-				d = BaseWindow::kWindowResizeDirectionFromTop;
-			}
-		}
-		deltaX = new_width - mRect.Width;
-		deltaY = new_height - mRect.Height;
-		if (deltaX != 0) {
-			if (d== BaseWindow::kWindowResizeDirectionFromTop){
-				d = BaseWindow::kWindowResizeDirectionFromRightTop;
-			}else if (d != BaseWindow::kWindowResizeDirectionFromLeft || d != BaseWindow::kWindowResizeDirectionFromLeftTop){
-				d = BaseWindow::kWindowResizeDirectionFromRight;
-			}
-		}
-		if (deltaY != 0) {
-			if (d == BaseWindow::kWindowResizeDirectionFromLeft) {
-				d = BaseWindow::kWindowResizeDirectionFromLeftBottom;
-			}
-			else if (d == BaseWindow::kWindowResizeDirectionFromRight) {
-				d = BaseWindow::kWindowResizeDirectionFromRightBottom;
-			}else if (d != BaseWindow::kWindowResizeDirectionFromTop ||
-				d != BaseWindow::kWindowResizeDirectionFromLeftTop||
-				d != BaseWindow::kWindowResizeDirectionFromRightTop) {
-				d = BaseWindow::kWindowResizeDirectionFromBottom;
-			}
-		}
-		SetRect(mRect.X, mRect.Y, new_width, new_height);
-		return d;
 	}
 	void MainWindow::OnSize(WPARAM wParam, LPARAM lParam, void*reserved) {
 		RECT rect;
 		GetWindowRect(mhWnd, &rect);
 		mRect = {rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top};
 		RECT*ptr_rect = &rect;
-		//Debug("MainWindow::OnSize (%d,%d,%d,%d) %dx%d", ptr_rect->left, ptr_rect->top, ptr_rect->right, ptr_rect->bottom, ptr_rect->right - ptr_rect->left, ptr_rect->bottom - ptr_rect->top);
-		/*HWND cWnd = GetWindow(mhWnd, GW_CHILD);
-		while (cWnd != nullptr) {
-			BaseWindow*vw = WindowInstance<BaseWindow>(cWnd);
-			vw->OnParentResized(mRect.Width-mLeftNCSize-mRightNCSize, mRect.Height-mTopNCSize-mBottomNCSize,deltaX,deltaY,d);
-			cWnd = GetNextWindow(cWnd, GW_HWNDNEXT);
-		}*/
 	}
 	LRESULT MainWindow::OnSizing(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */) {
 		RECT * ptr_new_rect = (RECT*)lParam;
@@ -80,139 +28,137 @@ namespace Editor {
 		case WMSZ_LEFT:{
 			int deltaX = new_width - last_width;
 			if (deltaX > 0) {
-				WindowHolder *wh = mLeftMostChildren;
-				int deltaX_consumed = deltaX;
-				bool can_resize = true;
-				while (wh != nullptr) {
-					int temp_deltaX = deltaX;
-					wh->mWindow->TryToExtentWindowHorizontallyFromLeft(temp_deltaX);
-					if (temp_deltaX==deltaX){
-						can_resize = false;
-						break;
-					}
-					int consumued_deltaX = deltaX - temp_deltaX;
-					if (deltaX_consumed > consumued_deltaX){
-						deltaX_consumed = consumued_deltaX;
-					}
-					wh = wh->Next<WindowHolder>();
-				}
-				if (false==can_resize){
-					ptr_new_rect->left = current_rect.left;
-					break;
-				}
-				//int fixed_new_width = last_width + deltaX_consumed;
-				//wh = mLeftMostChildren;
-				//while (wh != nullptr) {
-				//	wh->mWindow->OnParentResized(fixed_new_width, last_height);
-				//	wh = wh->Next<WindowHolder>();
-				//}
+				ExtentWindowFromLeft(deltaX);
 			}
 			else if (deltaX < 0) {
-				WindowHolder *wh = mLeftMostChildren;
-				int deltaX_consumed = deltaX;
-				bool can_resize = true;
-				while (wh != nullptr) {
-					int temp_deltaX = deltaX;
-					wh->mWindow->TryToReduceWindowHorizontallyFromLeft(temp_deltaX);
-					if (temp_deltaX == deltaX) {
-						can_resize = false;
-						break;
-					}
-					int consumued_deltaX = deltaX - temp_deltaX;
-					if (deltaX_consumed < consumued_deltaX) {
-						deltaX_consumed = consumued_deltaX;
-					}
-					wh = wh->Next<WindowHolder>();
-				}
-				if (false == can_resize) {
-					ptr_new_rect->left = current_rect.left;
-					break;
-				}
-				//int fixed_new_width = last_width + deltaX_consumed;
-				//wh = mLeftMostChildren;
-				//while (wh != nullptr) {
-				//	wh->mWindow->OnParentResized(fixed_new_width, last_height);
-				//	wh = wh->Next<WindowHolder>();
-				//}
+				ReduceWindowFromLeft(deltaX);
 			}
 		}
 			break;
 		case WMSZ_RIGHT: {
 			int deltaX = new_width - last_width;
 			if (deltaX > 0) {
-				WindowHolder *wh = mRightMostChildren;
-				int deltaX_consumed = deltaX;
-				bool can_resize = true;
-				while (wh != nullptr) {
-					int temp_deltaX = deltaX;
-					wh->mWindow->TryToExtentWindowHorizontallyFromRight(temp_deltaX);
-					if (temp_deltaX == deltaX) {
-						can_resize = false;
-						break;
-					}
-					int consumued_deltaX = deltaX - temp_deltaX;
-					if (deltaX_consumed > consumued_deltaX) {
-						deltaX_consumed = consumued_deltaX;
-					}
-					wh = wh->Next<WindowHolder>();
-				}
-				if (false == can_resize) {
-					ptr_new_rect->left = current_rect.left;
-					break;
-				}
-				int fixed_new_width = last_width + deltaX_consumed;
-				wh = mRightMostChildren;
-				while (wh != nullptr) {
-					wh->mWindow->ExtentWindowHorizontallyFromRight(deltaX_consumed);
-					wh = wh->Next<WindowHolder>();
-				}
+				ExtentWindowFromRight(deltaX);
 			}
 			else if (deltaX < 0) {
-				WindowHolder *wh = mRightMostChildren;
-				int deltaX_consumed = deltaX;
-				bool can_resize = true;
-				while (wh != nullptr) {
-					int temp_deltaX = deltaX;
-					wh->mWindow->TryToReduceWindowHorizontallyFromRight(temp_deltaX);
-					if (temp_deltaX == deltaX) {
-						can_resize = false;
-						break;
-					}
-					int consumued_deltaX = deltaX - temp_deltaX;
-					if (deltaX_consumed < consumued_deltaX) {
-						deltaX_consumed = consumued_deltaX;
-					}
-					wh = wh->Next<WindowHolder>();
-				}
-				if (false == can_resize) {
-					ptr_new_rect->left = current_rect.left;
-					break;
-				}
-				//int fixed_new_width = last_width + deltaX_consumed;
-				//wh = mLeftMostChildren;
-				//while (wh != nullptr) {
-				//	wh->mWindow->OnParentResized(fixed_new_width, last_height);
-				//	wh = wh->Next<WindowHolder>();
-				//}
+				ReduceWindowFromRight(deltaX);
 			}
 		}
 			break;
-		case WMSZ_TOP:
+		case WMSZ_TOP: {
+			int deltaY = new_height - last_height;
+			if (deltaY > 0) {
+				ExtentWindowFromTop(deltaY);
+			}
+			else if (deltaY < 0) {
+				ReduceWindowFromTop(deltaY);
+			}
+		}
 			break;
-		case WMSZ_TOPLEFT:
+		case WMSZ_TOPLEFT: {
+			int deltaX = new_width - last_width;
+			if (deltaX > 0) {
+				ExtentWindowFromLeft(deltaX);
+			}
+			else if (deltaX < 0) {
+				ReduceWindowFromLeft(deltaX);
+			}
+			int deltaY = new_height - last_height;
+			if (deltaY > 0) {
+				ExtentWindowFromTop(deltaY);
+			}
+			else if (deltaY < 0) {
+				ReduceWindowFromTop(deltaY);
+			}
+		}
 			break;
-		case WMSZ_TOPRIGHT:
+		case WMSZ_TOPRIGHT: {
+			int deltaX = new_width - last_width;
+			if (deltaX > 0) {
+				ExtentWindowFromRight(deltaX);
+			}
+			else if (deltaX < 0) {
+				ReduceWindowFromRight(deltaX);
+			}
+			int deltaY = new_height - last_height;
+			if (deltaY > 0) {
+				ExtentWindowFromTop(deltaY);
+			}
+			else if (deltaY < 0) {
+				ReduceWindowFromTop(deltaY);
+			}
+		}
 			break;
-		case WMSZ_BOTTOM:
+		case WMSZ_BOTTOM: {
+			int deltaY = new_height - last_height;
+			if (deltaY > 0) {
+				ExtentWindowFromBottom(deltaY);
+			}
+			else if (deltaY < 0) {
+				ReduceWindowFromBottom(deltaY);
+			}
+		}
 			break;
-		case WMSZ_BOTTOMLEFT:
+		case WMSZ_BOTTOMLEFT: {
+			int deltaX = new_width - last_width;
+			if (deltaX > 0) {
+				ExtentWindowFromLeft(deltaX);
+			}
+			else if (deltaX < 0) {
+				ReduceWindowFromLeft(deltaX);
+			}
+			int deltaY = new_height - last_height;
+			if (deltaY > 0) {
+				ExtentWindowFromBottom(deltaY);
+			}
+			else if (deltaY < 0) {
+				ReduceWindowFromBottom(deltaY);
+			}
+		}
 			break;
-		case WMSZ_BOTTOMRIGHT:
+		case WMSZ_BOTTOMRIGHT: {
+			int deltaX = new_width - last_width;
+			if (deltaX > 0) {
+				ExtentWindowFromRight(deltaX);
+			}
+			else if (deltaX < 0) {
+				ReduceWindowFromRight(deltaX);
+			}
+			int deltaY = new_height - last_height;
+			if (deltaY > 0) {
+				ExtentWindowFromBottom(deltaY);
+			}
+			else if (deltaY < 0) {
+				ReduceWindowFromBottom(deltaY);
+			}
+		}
 			break;
 		}
-		//Debug("Current OnSizing (%d,%d,%d,%d) %dx%d", current_rect.left, current_rect.top, current_rect.right, current_rect.bottom, current_rect.right - current_rect.left, current_rect.bottom - current_rect.top);
-		//Debug("Next OnSizing (%d,%d,%d,%d) %dx%d", ptr_new_rect->left, ptr_new_rect->top, ptr_new_rect->right, ptr_new_rect->bottom, new_width, new_height);
 		return TRUE;
+	}
+	void MainWindow::ExtentWindowFromLeft(int &deltaX) {
+		mContainer->ExtentContainerFromLeft(deltaX);
+	}
+	void MainWindow::ExtentWindowFromRight(int &deltaX) {
+		mContainer->ExtentContainerFromRight(deltaX);
+	}
+	void MainWindow::ExtentWindowFromBottom(int &deltaY) {
+		mContainer->ExtentContainerFromBottom(deltaY);
+	}
+	void MainWindow::ExtentWindowFromTop(int &deltaY) {
+		mContainer->ExtentContainerFromTop(deltaY);
+	}
+	void MainWindow::ReduceWindowFromLeft(int &deltaX) {
+		mContainer->ReduceContainerFromLeft(deltaX);
+	}
+	void MainWindow::ReduceWindowFromRight(int &deltaX) {
+		mContainer->ReduceContainerFromRight(deltaX);
+	}
+	void MainWindow::ReduceWindowFromBottom(int &deltaY) {
+		mContainer->ReduceContainerFromBottom(deltaY);
+	}
+	void MainWindow::ReduceWindowFromTop(int &deltaY) {
+		mContainer->ReduceContainerFromTop(deltaY);
 	}
 	void MainWindow::OnLButtonDown(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */){
 		int x = LOWORD(lParam);
@@ -252,9 +198,7 @@ namespace Editor {
 		HWND cWnd = GetWindow(mhWnd, GW_CHILD);
 		while (cWnd != nullptr) {
 			BaseWindow*vw = WindowInstance<BaseWindow>(cWnd);
-			//if (vw->GetRect().IntersectsWith(rect_need_update)) {
-				vw->OnParentPaint(painter);
-			//}
+			vw->OnParentPaint(painter);
 			cWnd = GetNextWindow(cWnd, GW_HWNDNEXT);
 		}
 	}
@@ -273,55 +217,13 @@ namespace Editor {
 		mHDC = GetWindowDC(mhWnd);
 		SetNCSize(6, 6, 6, 26);
 	}
-	void MainWindow::AddChildWindowAt(ChildWindowLocation location, BaseWindow*window) {
-		switch (location){
-		case Editor::kChildWindowLocationLeftEdge:
-			if (mLeftMostChildren==nullptr){
-				mLeftMostChildren = new WindowHolder(window);
-			}
-			else {
-				mLeftMostChildren->PushBack(new WindowHolder(window));
-			}
-			break;
-		case Editor::kChildWindowLocationRightEdge:
-			if (mRightMostChildren == nullptr) {
-				mRightMostChildren = new WindowHolder(window);
-			}
-			else {
-				mRightMostChildren->PushBack(new WindowHolder(window));
-			}
-			break;
-		case Editor::kChildWindowLocationTopEdge:
-			if (mTopMostChildren == nullptr) {
-				mTopMostChildren = new WindowHolder(window);
-			}
-			else {
-				mTopMostChildren->PushBack(new WindowHolder(window));
-			}
-			break;
-		case Editor::kChildWindowLocationBottomEdge:
-			if (mBottomMostChildren == nullptr) {
-				mBottomMostChildren = new WindowHolder(window);
-			}
-			else {
-				mBottomMostChildren->PushBack(new WindowHolder(window));
-			}
-			break;
-		}
+	void MainWindow::SetContainer(WindowContainer *container) {
+		mContainer = container;
+		Gdiplus::Rect container_min_rect = container->GetMinRect();
+		SetMinRect(0, 0, container_min_rect.Width+mLeftNCSize+mRightNCSize, container_min_rect.Height+mTopNCSize+mBottomNCSize);
+		Debug("%s MainWindow::SetContainer min rect[%dx%d]",mName,mMinRect.Width,mMinRect.Height);
 	}
 	void MainWindow::RemoveChildWindowAt(ChildWindowLocation location, BaseWindow*window) {
-		switch (location){
-		case Editor::kChildWindowLocationUnkown:
-			break;
-		case Editor::kChildWindowLocationLeftEdge:
-			break;
-		case Editor::kChildWindowLocationRightEdge:
-			break;
-		case Editor::kChildWindowLocationTopEdge:
-			break;
-		case Editor::kChildWindowLocationBottomEdge:
-			break;
-		}
 	}
 	void MainWindow::InitWindowClasses() {
 		RegisterWindowClass(CS_VREDRAW | CS_HREDRAW | CS_DROPSHADOW | CS_DBLCLKS , L"MainWindow", WindowEventProc);

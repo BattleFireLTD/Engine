@@ -11,6 +11,8 @@ namespace Editor {
 	void ProjectWindow::Init(BaseWindow*parent) {
 		ViewWindow*view_window = new ViewWindow;
 		view_window->SetWindowName("ProjectWindow");
+		view_window->SetNCSize(0, 3,0, 3);
+		view_window->SetMinRect(0, 0, 200, 200);
 		view_window->Init(parent);
 		view_window->SetBkgColor(Gdiplus::Color(255, 255, 200));
 		view_window->MoveWindow(0, 470, 974, 250);

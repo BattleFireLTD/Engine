@@ -11,6 +11,8 @@ namespace Editor {
 	void InspectorWindow::Init(BaseWindow*parent) {
 		ViewWindow*view_window = new ViewWindow;
 		view_window->SetWindowName("InspectorWindow");
+		view_window->SetNCSize(3, 0, 0, 0);
+		view_window->SetMinRect(0, 0, 200, 200);
 		view_window->Init(parent);
 		view_window->SetBkgColor(Gdiplus::Color(0, 255, 255));
 		view_window->MoveWindow(974, 70, 300, 650);

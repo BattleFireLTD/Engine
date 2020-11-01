@@ -15,27 +15,15 @@ namespace Editor {
 		kSiblingWindowLocationAtTop,
 		kSiblingWindowLocationAtBottom
 	};
+	class WindowHolder;
 	class BaseWindow:public EventDispatcher{
-	public:
-		enum WindowResizeDirection {
-			kWindowResizeDirectionNone,
-			kWindowResizeDirectionFromLeft=1,
-			kWindowResizeDirectionFromTop=2,
-			kWindowResizeDirectionFromRight=4,
-			kWindowResizeDirectionFromBottom=8,
-			kWindowResizeDirectionFromLeftTop=16,
-			kWindowResizeDirectionFromRightTop=32,
-			kWindowResizeDirectionFromRightBottom=64,
-			kWindowResizeDirectionFromLeftBottom=128
-		};
 	protected:
 		HDC mHDC;
 		BaseWindow*mParent;
 		Gdiplus::Color mBKGColor;
-		Gdiplus::Rect mRect, mMinRect, mMaxRect;
+		Gdiplus::Rect mRect, mMinRect, mMaxRect, mPredefinedRect;
 		int mTopNCSize, mBottomNCSize, mLeftNCSize, mRightNCSize;
 		int mSizingBorderSize;
-		SiblingWindowLocation mLocation;
 		char mName[64];
 	protected:
 		virtual void DrawContent(Gdiplus::Graphics&painter);
@@ -51,6 +39,7 @@ namespace Editor {
 		virtual LRESULT OnNCCALCSIZE(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual LRESULT OnNCPAINT(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 	public:
+		WindowHolder *mLeftSiblingWindows, *mRightSiblingWindows, *mTopSiblingWindows, *mBottomSiblingWindows;
 		std::unordered_set<BaseWindow*> mChildren;
 		BaseWindow();
 		virtual ~BaseWindow();
@@ -58,6 +47,7 @@ namespace Editor {
 		virtual void OnEditControlLoseFocus(BaseWindow*editControl);
 
 		void SetMinRect(int x, int y, int width, int height);
+		void SetMaxRect(int x, int y, int width, int height);
 		void SetBkgColor(Gdiplus::Color &color);
 		void SetParent(BaseWindow*parent);
 		void SetRect(int x, int y, int width, int height);
@@ -78,31 +68,25 @@ namespace Editor {
 		Gdiplus::Rect &GetMinRect();
 		int GetMinWidth();
 		int GetMinHeight();
+		int GenerateMinWidth();
+		int GenerateMinHeight();
+		int GenerateMaxWidth();
+		int GenerateMaxHeight();
 
 		void ScheduleUpdate();
 		void CancelUpdate();
 		void Update();
 		virtual void MarkDirty();
 		virtual void MoveWindow(int x, int y, int width, int height);
-		virtual void OnParentResized(int width, int height, int deltaX = 0, int deltaY = 0, WindowResizeDirection d = kWindowResizeDirectionNone) {}
-		virtual void TryToExtentWindowHorizontallyFromLeft(int & deltaX) { }
-		virtual void TryToReduceWindowHorizontallyFromLeft(int & deltaX) { }
-		virtual void TryToExtentWindowHorizontallyFromRight(int & deltaX) { }
-		virtual void TryToReduceWindowHorizontallyFromRight(int & deltaX) { }
-		virtual void TryToExtentWindowVerticallyFromTop(int & deltaY) { }
-		virtual void TryToReduceWindowVerticallyFromTop(int & deltaY) { }
-		virtual void TryToExtentWindowVerticallyFromBottom(int & deltaY) { }
-		virtual void TryToReduceWindowVerticallyFromBottom(int & deltaY) { }
-		virtual void ExtentWindowHorizontallyFromLeft(int deltaX) { }
-		virtual void ReduceWindowHorizontallyFromLeft(int deltaX) { }
-		virtual void ExtentWindowHorizontallyFromRight(int deltaX) { }
-		virtual void ReduceWindowHorizontallyFromRight(int deltaX) { }
-		virtual void ExtentWindowVerticallyFromTop(int deltaY) { }
-		virtual void ReduceWindowVerticallyFromTop(int deltaY) { }
-		virtual void ExtentWindowVerticallyFromBottom(int deltaY) { }
-		virtual void ReduceWindowVerticallyFromBottom(int deltaY) { }
-		virtual bool ConsumeDeltaX(int & deltaX) { return true; }
-		virtual bool ConsumeDeltaY(int & deltaY) { return true; }
+		virtual void OnParentResized(int width, int height) {}
+		virtual void ExtentWindowFromLeft(int & deltaX, const Gdiplus::Rect * left_rect = nullptr, const Gdiplus::Rect * container_rect = nullptr);
+		virtual void ReduceWindowFromLeft(int & deltaX, const Gdiplus::Rect * left_rect = nullptr, const Gdiplus::Rect * container_rect = nullptr);
+		virtual void ExtentWindowFromRight(int & deltaX, const Gdiplus::Rect * right_rect = nullptr);
+		virtual void ReduceWindowFromRight(int & deltaX, int shiftX, const Gdiplus::Rect * container_rect = nullptr);
+		virtual void ExtentWindowFromTop(int & deltaY, const Gdiplus::Rect * top_rect = nullptr, const Gdiplus::Rect * container_rect = nullptr);
+		virtual void ReduceWindowFromTop(int & deltaY, const Gdiplus::Rect * top_rect = nullptr, const Gdiplus::Rect * container_rect = nullptr);
+		virtual void ExtentWindowFromBottom(int & deltaY, const Gdiplus::Rect * bottom_rect = nullptr);
+		virtual void ReduceWindowFromBottom(int & deltaY, int shiftY, const Gdiplus::Rect * container_rect = nullptr);
 		virtual void OnParentPaint(Gdiplus::Graphics&painter) {}
 		int GetX();
 		int GetY();

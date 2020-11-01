@@ -13,6 +13,8 @@ namespace Editor {
 		ViewWindow*view_window = new ViewWindow;
 		view_window->SetWindowName("TopMenuWindow");
 		view_window->SetNCSize(0, 0, 0, 0);
+		view_window->SetMinRect(0, 0, -1, 20);
+		view_window->SetMaxRect(0, 0, -1, 20);
 		view_window->Init(parent);
 		view_window->SetBkgColor(Gdiplus::Color(255, 255, 255));
 

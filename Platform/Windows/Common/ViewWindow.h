@@ -1,6 +1,7 @@
 #pragma once
 #include "Base/DoubleBufferedWindow.h"
 #include "Control/UINode.h"
+#include "Base/WindowContainer.h"
 namespace Editor {
 	class ViewWindow :public DoubleBufferedWindow {
 	protected:
@@ -8,7 +9,7 @@ namespace Editor {
 		Gdiplus::Rect mFixedRect;
 		Gdiplus::Point mDeltaWhenDrag;
 		UINode * mUIRoot, *mLastTouchObject, *mLastHoverObject;
-		WindowHolder *mLeftSiblingWindows, *mRightSiblingWindows, *mTopSiblingWindows, *mBottomSiblingWindows;
+		WindowContainer *mContainer;
 	protected:
 		virtual void OnLButtonDown(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 		virtual void OnLButtonUp(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
@@ -22,24 +23,8 @@ namespace Editor {
 		virtual void OnParentPaint(Gdiplus::Graphics&painter);
 	public:
 		ViewWindow();
-		virtual void OnParentResized(int width, int height, int deltaX = 0, int deltaY = 0, BaseWindow::WindowResizeDirection d = BaseWindow::kWindowResizeDirectionNone);
-		virtual void TryToExtentWindowHorizontallyFromLeft(int & deltaX);
-		virtual void TryToReduceWindowHorizontallyFromLeft(int & deltaX);
-		virtual void TryToExtentWindowHorizontallyFromRight(int & deltaX);
-		virtual void TryToReduceWindowHorizontallyFromRight(int & deltaX);
-		virtual void TryToExtentWindowVerticallyFromTop(int & deltaY);
-		virtual void TryToReduceWindowVerticallyFromTop(int & deltaY);
-		virtual void TryToExtentWindowVerticallyFromBottom(int & deltaY);
-		virtual void TryToReduceWindowVerticallyFromBottom(int & deltaY);
+		virtual void OnParentResized(int width, int height);
 
-		virtual void ExtentWindowHorizontallyFromLeft(int deltaX);
-		virtual void ReduceWindowHorizontallyFromLeft(int deltaX);
-		virtual void ExtentWindowHorizontallyFromRight(int deltaX);
-		virtual void ReduceWindowHorizontallyFromRight(int deltaX);
-		virtual void ExtentWindowVerticallyFromTop(int deltaY);
-		virtual void ReduceWindowVerticallyFromTop(int deltaY);
-		virtual void ExtentWindowVerticallyFromBottom(int deltaY);
-		virtual void ReduceWindowVerticallyFromBottom(int deltaY);
 		virtual void MarkDirty();
 		void AddWindowAtLeft(BaseWindow*window);
 		void AddWindowAtRight(BaseWindow*window);

@@ -175,45 +175,102 @@ namespace Editor {
 		ViewWindow*scene_window = SceneWindow::Singleton()->GetViewWindow();
 		ViewWindow*inspector_window = InspectorWindow::Singleton()->GetViewWindow();
 
-		//sub view window location
-		AddChildWindowAt(kChildWindowLocationTopEdge, top_menu_window);
-
-		AddChildWindowAt(kChildWindowLocationLeftEdge, top_menu_window);
-		AddChildWindowAt(kChildWindowLocationLeftEdge, tools_window);
-		AddChildWindowAt(kChildWindowLocationLeftEdge, hierarchy_window);
-		AddChildWindowAt(kChildWindowLocationLeftEdge, project_window);
-
-		AddChildWindowAt(kChildWindowLocationRightEdge, top_menu_window);
-		AddChildWindowAt(kChildWindowLocationRightEdge, tools_window);
-		AddChildWindowAt(kChildWindowLocationRightEdge, inspector_window);
-
-		AddChildWindowAt(kChildWindowLocationBottomEdge, project_window);
-		AddChildWindowAt(kChildWindowLocationBottomEdge, inspector_window);
-		
 		//view window relationship
 		top_menu_window->AddWindowAtBottom(tools_window);
 		tools_window->AddWindowAtTop(top_menu_window);
 
-		tools_window->AddWindowAtBottom(hierarchy_window);
-		tools_window->AddWindowAtBottom(scene_window);
-		tools_window->AddWindowAtBottom(inspector_window);
-		hierarchy_window->AddWindowAtBottom(tools_window);
-		scene_window->AddWindowAtBottom(tools_window);
-		inspector_window->AddWindowAtBottom(tools_window);
-
-		hierarchy_window->AddWindowAtBottom(project_window);
-		project_window->AddWindowAtTop(hierarchy_window);
-
 		hierarchy_window->AddWindowAtRight(scene_window);
 		scene_window->AddWindowAtLeft(hierarchy_window);
+/*
+	_________________________________________________________________
+	|																 |
+	|						  Top Container							 |
+	|________________________________________________________________|
+	|												|				 |
+	|												|				 |
+	|												|			     |
+	|												|			     |
+	|					Left						|	   Right	 |
+	|												|			     |
+	|												|			     |
+	|												|			     |
+	|												|			     |
+	|												|			     |
+	|_______________________________________________|________________|
+*/
+		//level 0
+		WindowContainer*main_container = new WindowContainer("MainContainer");
+		//level 1
+		WindowContainer*top_container = new WindowContainer("TopContainer");
+		WindowContainer*bottom_container = new WindowContainer("BottomContainer");
+		//level 2
+		WindowContainer*left_container = new WindowContainer("BottomLeftContainer");
+		WindowContainer*right_container = new WindowContainer("BottomRightContainer");
+		//level 3
+		WindowContainer*left_container_top = new WindowContainer("BottomLeftTopContainer");
+		WindowContainer*left_container_bottom = new WindowContainer("BottomLeftBottomContainer");
 
-		project_window->AddWindowAtTop(scene_window);
-		scene_window->AddWindowAtBottom(project_window);
+		//level 0 -> level 1
+		main_container->AddTopEdgeChildContainer(top_container);
+		main_container->AddLeftEdgeChildContainer(top_container);
+		main_container->AddLeftEdgeChildContainer(bottom_container);
+		main_container->AddRightEdgeChildContainer(top_container);
+		main_container->AddRightEdgeChildContainer(bottom_container);
+		main_container->AddBottomEdgeChildContainer(bottom_container);
 
-		project_window->AddWindowAtRight(inspector_window);
-		inspector_window->AddWindowAtLeft(project_window);
+		top_container->AddSiblingContainerAtBottom(bottom_container);
+		bottom_container->AddSiblingContainerAtTop(top_container);
 
-		scene_window->AddWindowAtRight(inspector_window);
-		inspector_window->AddWindowAtLeft(scene_window);
+		//level 1 -> level 2
+		bottom_container->AddTopEdgeChildContainer(left_container);
+		bottom_container->AddTopEdgeChildContainer(right_container);
+		bottom_container->AddLeftEdgeChildContainer(left_container);
+		bottom_container->AddRightEdgeChildContainer(right_container);
+		bottom_container->AddBottomEdgeChildContainer(left_container);
+		bottom_container->AddBottomEdgeChildContainer(right_container);
+		left_container->AddSiblingContainerAtRight(right_container);
+		right_container->AddSiblingContainerAtLeft(left_container);
+		//level 1 top_container content
+		top_container->AddChildWindowAt(kChildWindowLocationTopEdge, top_menu_window);
+		top_container->AddChildWindowAt(kChildWindowLocationBottomEdge, tools_window);
+		top_container->AddChildWindowAt(kChildWindowLocationLeftEdge, top_menu_window);
+		top_container->AddChildWindowAt(kChildWindowLocationLeftEdge, tools_window);
+		top_container->AddChildWindowAt(kChildWindowLocationRightEdge, top_menu_window);
+		top_container->AddChildWindowAt(kChildWindowLocationRightEdge, tools_window);
+		top_container->SetMaxRect(0, 0, -1, 70);
+		top_container->Complete();
+		//level 2 right_container content
+		right_container->AddChildWindowAt(kChildWindowLocationLeftEdge, inspector_window);
+		right_container->AddChildWindowAt(kChildWindowLocationRightEdge, inspector_window);
+		right_container->AddChildWindowAt(kChildWindowLocationBottomEdge, inspector_window);
+		right_container->AddChildWindowAt(kChildWindowLocationTopEdge, inspector_window);
+		right_container->Complete();
+		//level 2 -> level 3
+		left_container->AddTopEdgeChildContainer(left_container_top);
+		left_container->AddLeftEdgeChildContainer(left_container_top);
+		left_container->AddLeftEdgeChildContainer(left_container_bottom);
+		left_container->AddRightEdgeChildContainer(left_container_top);
+		left_container->AddRightEdgeChildContainer(left_container_bottom);
+		left_container->AddBottomEdgeChildContainer(left_container_bottom);
+		left_container_top->AddSiblingContainerAtBottom(left_container_bottom);
+		left_container_bottom->AddSiblingContainerAtTop(left_container_top);
+		//level 3 left_container_bottom content
+		left_container_bottom->AddChildWindowAt(kChildWindowLocationLeftEdge, project_window);
+		left_container_bottom->AddChildWindowAt(kChildWindowLocationRightEdge, project_window);
+		left_container_bottom->AddChildWindowAt(kChildWindowLocationBottomEdge, project_window);
+		left_container_bottom->AddChildWindowAt(kChildWindowLocationTopEdge, project_window);
+		left_container_bottom->Complete();
+		//level 3 left_container_top content
+		left_container_top->AddChildWindowAt(kChildWindowLocationLeftEdge, hierarchy_window);
+		left_container_top->AddChildWindowAt(kChildWindowLocationRightEdge, scene_window);
+		left_container_top->AddChildWindowAt(kChildWindowLocationTopEdge, hierarchy_window);
+		left_container_top->AddChildWindowAt(kChildWindowLocationTopEdge, scene_window);
+		left_container_top->AddChildWindowAt(kChildWindowLocationBottomEdge, hierarchy_window);
+		left_container_top->AddChildWindowAt(kChildWindowLocationBottomEdge, scene_window);
+		left_container_top->Complete();
+		left_container->Complete();
+		bottom_container->Complete();
+		main_container->Complete();
+		SetContainer(main_container);
 	}
 }

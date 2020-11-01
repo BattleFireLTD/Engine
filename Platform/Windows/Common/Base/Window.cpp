@@ -14,8 +14,11 @@ namespace Editor{
 		mTopNCSize = 26;
 		mBottomNCSize = 6;
 		mSizingBorderSize = 6;
-		memset(mName,0,64);
-		mLocation = kSiblingWindowLocationAtUnkown;
+		mLeftSiblingWindows = nullptr;
+		mRightSiblingWindows = nullptr;
+		mTopSiblingWindows = nullptr;
+		mBottomSiblingWindows = nullptr;
+		memset(mName, 0, 64);
 	}
 	BaseWindow::~BaseWindow(){
 		DestroyWindow(mhWnd);
@@ -26,6 +29,12 @@ namespace Editor{
 		mMinRect.Width = width;
 		mMinRect.Height = height;
 	}
+	void BaseWindow::SetMaxRect(int x, int y, int width, int height) {
+		mMaxRect.X = x;
+		mMaxRect.Y = y;
+		mMaxRect.Width = width;
+		mMaxRect.Height = height;
+	}
 	Gdiplus::Rect & BaseWindow::GetMinRect(){
 		return mMinRect;
 	}
@@ -34,6 +43,58 @@ namespace Editor{
 	}
 	int BaseWindow::GetMinHeight(){
 		return mMinRect.Height;
+	}
+	int BaseWindow::GenerateMinWidth() {
+		int min_width = mMinRect.Width;
+		int right_sibling_min_width = 0;
+		WindowHolder*right_sibling = mRightSiblingWindows;
+		while (right_sibling!=nullptr){
+			int current_right_sibling_window_min_width = right_sibling->mWindow->GenerateMinWidth();
+			if (right_sibling_min_width<current_right_sibling_window_min_width){
+				right_sibling_min_width = current_right_sibling_window_min_width;
+			}
+			right_sibling = right_sibling->Next<WindowHolder>();
+		}
+		return min_width + right_sibling_min_width;
+	}
+	int BaseWindow::GenerateMinHeight() {
+		int min_height = mMinRect.Height;
+		int right_sibling_min_height = 0;
+		WindowHolder*bottom_sibling = mBottomSiblingWindows;
+		while (bottom_sibling != nullptr) {
+			int current_right_sibling_window_min_height = bottom_sibling->mWindow->GenerateMinHeight();
+			if (right_sibling_min_height < current_right_sibling_window_min_height) {
+				right_sibling_min_height = current_right_sibling_window_min_height;
+			}
+			bottom_sibling = bottom_sibling->Next<WindowHolder>();
+		}
+		return min_height + right_sibling_min_height;
+	}
+	int BaseWindow::GenerateMaxWidth() {
+		int max_width = mMaxRect.Width;
+		int right_sibling_max_width = 999999;
+		WindowHolder*sibling = mRightSiblingWindows;
+		while (sibling != nullptr) {
+			int current_right_sibling_window_max_width = sibling->mWindow->GenerateMaxWidth();
+			if (right_sibling_max_width > current_right_sibling_window_max_width) {
+				right_sibling_max_width = current_right_sibling_window_max_width;
+			}
+			sibling = sibling->Next<WindowHolder>();
+		}
+		return (max_width == -1 || right_sibling_max_width == -1) ? -1 : max_width + right_sibling_max_width;
+	}
+	int BaseWindow::GenerateMaxHeight() {
+		int max_height = mMaxRect.Height;
+		int bottom_sibling_max_height = 999999;
+		WindowHolder*sibling = mBottomSiblingWindows;
+		while (sibling != nullptr) {
+			int current_bottom_sibling_window_max_height = sibling->mWindow->GenerateMinHeight();
+			if (bottom_sibling_max_height > current_bottom_sibling_window_max_height) {
+				bottom_sibling_max_height = current_bottom_sibling_window_max_height;
+			}
+			sibling = sibling->Next<WindowHolder>();
+		}
+		return (max_height==-1||bottom_sibling_max_height==-1) ? -1 : max_height + bottom_sibling_max_height;
 	}
 	static BaseWindow*sRootWindow=nullptr;
 	void BaseWindow::ScheduleUpdate(){
@@ -83,10 +144,14 @@ namespace Editor{
 		MINMAXINFO *ptr = (MINMAXINFO*)lParam;
 		if (mMinRect.Width!=-1){
 			ptr->ptMinTrackSize.x = mMinRect.Width;
+		}
+		if (mMinRect.Height != -1) {
 			ptr->ptMinTrackSize.y = mMinRect.Height;
 		}
-		if (mMaxRect.Height!=-1){
+		if (mMaxRect.Width != -1) {
 			ptr->ptMaxTrackSize.x = mMaxRect.Width;
+		}
+		if (mMaxRect.Height!=-1){
 			ptr->ptMaxTrackSize.y = mMaxRect.Height;
 		}
 	}
@@ -121,7 +186,7 @@ namespace Editor{
 			}
 			return HTCLIENT;
 		}
-		else if (mRightNCSize > 0) {
+		else if (mRightNCSize > 0 && point.x>mRect.Width-mSizingBorderSize) {
 			if (point.y <= mSizingBorderSize) {
 				return HTTOPRIGHT;
 			}
@@ -276,6 +341,100 @@ namespace Editor{
 	}
 	HDC BaseWindow::GetDC(){
 		return mHDC;
+	}
+	void BaseWindow::ExtentWindowFromLeft(int & deltaX, const Gdiplus::Rect * left_rect, const Gdiplus::Rect * container_rect) {
+		GetRelativeWindowRect(mRect);
+		const Gdiplus::Rect * reference_rect = left_rect == nullptr ? container_rect : left_rect;
+		int left_rect_right_edge_pos = (reference_rect == nullptr) ? mRect.X : (reference_rect == container_rect ? reference_rect->X : reference_rect->GetRight());
+		mPredefinedRect = { left_rect_right_edge_pos,mRect.Y,mRect.Width + deltaX,mRect.Height };
+		deltaX = 0;
+		MoveWindow(mPredefinedRect.X, mPredefinedRect.Y, mPredefinedRect.Width, mPredefinedRect.Height);
+		WindowHolder*right_sibling = mRightSiblingWindows;
+		while (right_sibling != nullptr) {
+			right_sibling->mWindow->ExtentWindowFromLeft(deltaX, &mPredefinedRect);
+			right_sibling = right_sibling->Next<WindowHolder>();
+		}
+	}
+	void BaseWindow::ReduceWindowFromLeft(int & deltaX, const Gdiplus::Rect * left_rect, const Gdiplus::Rect * container_rect) {
+		GetRelativeWindowRect(mRect);
+		const Gdiplus::Rect * reference_rect = left_rect == nullptr ? container_rect : left_rect;
+		int left_rect_right_edge_pos = (reference_rect == nullptr) ? mRect.X : (reference_rect == container_rect ? reference_rect->X : reference_rect->GetRight());
+		int max_cosumable_deltaX = mMinRect.Width==-1? 32 - mRect.Width : mMinRect.Width - mRect.Width;
+		int current_window_cosumed_deltaX = deltaX > max_cosumable_deltaX ? deltaX : max_cosumable_deltaX;
+		deltaX -= current_window_cosumed_deltaX;
+		mPredefinedRect = { left_rect_right_edge_pos,mRect.Y,mRect.Width + current_window_cosumed_deltaX,mRect.Height };
+		MoveWindow(mPredefinedRect.X, mPredefinedRect.Y, mPredefinedRect.Width, mPredefinedRect.Height);
+		WindowHolder*sibling = mRightSiblingWindows;
+		while (sibling != nullptr) {
+			sibling->mWindow->ExtentWindowFromLeft(deltaX, &mPredefinedRect);
+			sibling = sibling->Next<WindowHolder>();
+		}
+	}
+	void BaseWindow::ExtentWindowFromRight(int & deltaX, const Gdiplus::Rect * right_rect) {
+		GetRelativeWindowRect(mRect);
+		mPredefinedRect = { mRect.X,mRect.Y,mRect.Width + deltaX,mRect.Height };
+		deltaX = 0;
+		MoveWindow(mPredefinedRect.X, mPredefinedRect.Y, mPredefinedRect.Width, mPredefinedRect.Height);
+	}
+	void BaseWindow::ReduceWindowFromRight(int & deltaX, int shiftX, const Gdiplus::Rect * container_rect) {
+		GetRelativeWindowRect(mRect);
+		int max_cosumable_deltaX = mMinRect.Width==-1 ? 32-mRect.Width : mMinRect.Width - mRect.Width;
+		int current_window_cosumed_deltaX = deltaX > max_cosumable_deltaX  ? deltaX : max_cosumable_deltaX;
+		deltaX -= current_window_cosumed_deltaX;
+		mPredefinedRect = { mRect.X + deltaX + shiftX ,mRect.Y,mRect.Width + current_window_cosumed_deltaX,mRect.Height };
+		MoveWindow(mPredefinedRect.X, mPredefinedRect.Y, mPredefinedRect.Width, mPredefinedRect.Height);
+		WindowHolder*sibling = mLeftSiblingWindows;
+		while (sibling != nullptr) {
+			sibling->mWindow->ReduceWindowFromRight(deltaX, shiftX,&mPredefinedRect);
+			sibling = sibling->Next<WindowHolder>();
+		}
+	}
+	void BaseWindow::ExtentWindowFromBottom(int & deltaY, const Gdiplus::Rect * bottom_rect) {
+		GetRelativeWindowRect(mRect);
+		mPredefinedRect = { mRect.X,mRect.Y,mRect.Width ,mRect.Height + deltaY };
+		deltaY = 0;
+		MoveWindow(mPredefinedRect.X, mPredefinedRect.Y, mPredefinedRect.Width, mPredefinedRect.Height);
+	}
+	void BaseWindow::ReduceWindowFromBottom(int & deltaY, int shiftY, const Gdiplus::Rect * container_rect) {
+		GetRelativeWindowRect(mRect);
+		int max_cosumable_deltaY = mMinRect.Height== -1 ? 32 - mRect.Height : mMinRect.Height - mRect.Height;
+		int current_window_cosumed_deltaY = deltaY > max_cosumable_deltaY ? deltaY : max_cosumable_deltaY;
+		deltaY -= current_window_cosumed_deltaY;
+		mPredefinedRect = { mRect.X  ,mRect.Y + deltaY + shiftY,mRect.Width ,mRect.Height + current_window_cosumed_deltaY };
+		MoveWindow(mPredefinedRect.X, mPredefinedRect.Y, mPredefinedRect.Width, mPredefinedRect.Height);
+		WindowHolder*sibling = mTopSiblingWindows;
+		while (sibling != nullptr) {
+			sibling->mWindow->ReduceWindowFromBottom(deltaY, shiftY, &mPredefinedRect);
+			sibling = sibling->Next<WindowHolder>();
+		}
+	}
+	void BaseWindow::ExtentWindowFromTop(int & deltaY, const Gdiplus::Rect * top_rect, const Gdiplus::Rect * container_rect) {
+		GetRelativeWindowRect(mRect);
+		const Gdiplus::Rect * reference_rect = top_rect == nullptr ? container_rect : top_rect;
+		int top_rect_bottom_edge_pos = (reference_rect == nullptr) ? mRect.Y : (reference_rect == container_rect ? reference_rect->Y : reference_rect->GetBottom());
+		mPredefinedRect = { mRect.X,top_rect_bottom_edge_pos,mRect.Width,mRect.Height+deltaY };
+		deltaY = 0;
+		MoveWindow(mPredefinedRect.X, mPredefinedRect.Y, mPredefinedRect.Width, mPredefinedRect.Height);
+		WindowHolder*sibling = mBottomSiblingWindows;
+		while (sibling != nullptr) {
+			sibling->mWindow->ExtentWindowFromTop(deltaY, &mPredefinedRect);
+			sibling = sibling->Next<WindowHolder>();
+		}
+	}
+	void BaseWindow::ReduceWindowFromTop(int & deltaY, const Gdiplus::Rect * top_rect, const Gdiplus::Rect * container_rect) {
+		GetRelativeWindowRect(mRect);
+		const Gdiplus::Rect * reference_rect = top_rect == nullptr ? container_rect : top_rect;
+		int top_rect_bottom_edge_pos = (reference_rect == nullptr) ? mRect.Y : (reference_rect == container_rect ? reference_rect->Y : reference_rect->GetBottom());
+		int max_cosumable_deltaY = mMinRect.Height - mRect.Height;
+		int current_window_cosumed_deltaY= deltaY > max_cosumable_deltaY ? deltaY : max_cosumable_deltaY;
+		deltaY -= current_window_cosumed_deltaY;
+		mPredefinedRect = { mRect.X,top_rect_bottom_edge_pos,mRect.Width ,mRect.Height + current_window_cosumed_deltaY };
+		MoveWindow(mPredefinedRect.X, mPredefinedRect.Y, mPredefinedRect.Width, mPredefinedRect.Height);
+		WindowHolder*sibling = mBottomSiblingWindows;
+		while (sibling != nullptr) {
+			sibling->mWindow->ReduceWindowFromTop(deltaY, &mPredefinedRect);
+			sibling = sibling->Next<WindowHolder>();
+		}
 	}
 	ATOM BaseWindow::RegisterWindowClass(UINT style, LPCTSTR pWndClassName, WNDPROC wndProc){
 		WNDCLASSEX wcex;
