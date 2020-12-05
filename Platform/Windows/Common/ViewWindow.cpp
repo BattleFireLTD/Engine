@@ -30,9 +30,7 @@ namespace Editor {
 		painter.SetClip(Gdiplus::Rect(0, 0, mRect.Width - mRightNCSize, mRect.Height - mTopNCSize));
 		painter.Clear(mBKGColor);
 		painter.ResetClip();
-		if (mUIRoot != nullptr) {
-			mUIRoot->DrawRecursively(painter);
-		}
+		DrawContent(painter);
 		painter.ResetTransform();
 	}
 	void ViewWindow::OnClearBKG(Gdiplus::Graphics&painter) {
