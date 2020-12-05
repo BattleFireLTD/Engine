@@ -25,9 +25,9 @@ namespace Editor {
 		RECT parent_rect, self_rect;
 		GetWindowRect(mParent->GetHwnd(), &parent_rect);
 		GetWindowRect(mhWnd, &self_rect);
-		painter.TranslateTransform(float(self_rect.left - parent_rect.left), float(self_rect.top - parent_rect.top));
+		painter.TranslateTransform(float(self_rect.left - parent_rect.left), float(self_rect.top - parent_rect.top + mTopNCSize));
 		//Debug("ViewWindow::OnParentPaint %s %d,%d,%d,%d",mName, self_rect.left - parent_rect.left, self_rect.top - parent_rect.top, mRect.Width, mRect.Height);
-		painter.SetClip(Gdiplus::Rect(0, 0, mRect.Width, mRect.Height));
+		painter.SetClip(Gdiplus::Rect(0, 0, mRect.Width - mRightNCSize, mRect.Height - mTopNCSize));
 		painter.Clear(mBKGColor);
 		painter.ResetClip();
 		if (mUIRoot != nullptr) {
@@ -45,6 +45,9 @@ namespace Editor {
 	}
 	void ViewWindow::OnSize(WPARAM wParam, LPARAM lParam, void*reserved) {
 		GetRelativeWindowRect(mRect);
+		if (mUIRoot!=nullptr){
+			mUIRoot->OnContainerSizeChangedRecursively(mRect.Width, mRect.Height);
+		}
 	}
 	void ViewWindow::OnLButtonDown(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */)
 	{

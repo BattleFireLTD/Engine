@@ -19,7 +19,7 @@ namespace Editor {
 	}
 	void EditorMainWindow::OnSize(WPARAM wParam, LPARAM lParam, void*reserved) {
 		MainWindow::OnSize(wParam, lParam, reserved);
-		if (mCloseBtn != nullptr)mCloseBtn->SetRect(mRect.Width - 32, 2, 24, 24);
+		if (mCloseBtn != nullptr) mCloseBtn->SetRect(mRect.Width - 32, 2, 24, 24);
 	}
 	void EditorMainWindow::OnLButtonDown(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */){
 		int x = LOWORD(lParam);

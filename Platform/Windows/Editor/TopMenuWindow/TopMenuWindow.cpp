@@ -9,6 +9,9 @@
 #include "Platform/Windows/Editor/Menu/PopupMenuButton.h"
 namespace Editor {
 	TopMenuWindow*TopMenuWindow::mSingleton = nullptr;
+	void TopMenuWindow::OnSize(WPARAM wParam, LPARAM lParam, void*reserved /* = nullptr */) {
+
+	}
 	void TopMenuWindow::Init(BaseWindow*parent) {
 		ViewWindow*view_window = new ViewWindow;
 		view_window->SetWindowName("TopMenuWindow");

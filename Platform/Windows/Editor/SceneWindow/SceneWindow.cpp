@@ -2,6 +2,7 @@
 #include "Platform/Windows/Common/WinEnviroment.h"
 #include "Platform/Windows/Common/ViewWindow.h"
 #include "Platform/Windows/Common/Control/Button/TwoStateButton.h"
+#include "Platform/Windows/Common/Control/Button/TabButton.h"
 #include "Platform/Windows/Editor/Menu/MenuItemDefine.h"
 #include "Runtime/Debugger/Logger.h"
 #include "Runtime/String/StringUtils.h"
@@ -14,10 +15,14 @@ namespace Editor {
 		view_window->SetMinRect(0, 0, 400, 320);
 		view_window->SetNCSize(3, 3, 0, 0);
 		view_window->Init(parent);
-		view_window->SetBkgColor(Gdiplus::Color(41, 77, 121));
+		//view_window->SetBkgColor(Gdiplus::Color(41, 77, 121));
 		view_window->MoveWindow(300, 70, 674, 400);
 		view_window->Show();
 		mViewWindow = view_window;
+		TabButton *tab_button = new TabButton;
+		tab_button->Init(WinResources::Singleton()->GetImageData("AliceTab.png"), WinResources::Singleton()->GetImageData("SceneViewIcon.png"), "Scene");
+		tab_button->SetRect(view_window->GetUILocationL(96, 0) - 48, view_window->GetUILocationT(20, 0) - 10, 96, 20);
+		view_window->AppendUI(tab_button);
 	}
 	ViewWindow*SceneWindow::GetViewWindow() {
 		return mViewWindow;

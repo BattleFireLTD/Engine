@@ -10,7 +10,7 @@ namespace Editor {
 	TopToolsWindow*TopToolsWindow::mSingleton = nullptr;
 	void TopToolsWindow::Init(BaseWindow*parent) {
 		ViewWindow*view_window = new ViewWindow;
-		view_window->SetWindowName("ToolsWindow");
+		view_window->SetWindowName("TopToolsWindow");
 		view_window->SetBkgColor(Gdiplus::Color(30, 30, 30));
 		view_window->SetNCSize(0, 0, 0, 0);
 		view_window->Init(parent);
@@ -18,12 +18,12 @@ namespace Editor {
 		view_window->SetMinRect(0, 0, -1, 50);
 		view_window->SetMaxRect(0, 0, -1, 50);
 		view_window->Show();
-		TwoStateButton*play_stop_button = new TwoStateButton;
-		play_stop_button->SetImageData(WinResources::Singleton()->GetImageData("PlayNormal.png"), WinResources::Singleton()->GetImageData("PlayDown.png"));
-		play_stop_button->SetRect(view_window->GetUILocationL(32, 1274 / 2) - 16, view_window->GetUILocationT(32, 9) - 16, 0, 0);
-		play_stop_button->SetLocationCatagory(UINode::kUILocationCatagoryPercentageAbsolute, UINode::kUILocationCatagoryRelativeToTop);
-		play_stop_button->SetAnchor(0.5f, 9.0f);
-		play_stop_button->SetOnClickedHandler([](void*ptr)->void {
+		mPlayStopButton = new TwoStateButton;
+		mPlayStopButton->SetImageData(WinResources::Singleton()->GetImageData("PlayNormal.png"), WinResources::Singleton()->GetImageData("PlayDown.png"));
+		mPlayStopButton->SetRect(view_window->GetUILocationL(32, 1274 / 2) - 16, view_window->GetUILocationT(32, 9) - 16, 0, 0);
+		mPlayStopButton->SetLocationCatagory(UINode::kUILocationCatagoryPercentageAbsolute, UINode::kUILocationCatagoryRelativeToTop);
+		mPlayStopButton->SetAnchor(0.5f, 9.0f);
+		mPlayStopButton->SetOnClickedHandler([](void*ptr)->void {
 			TwoStateButton * btn = (TwoStateButton*)ptr;
 			switch (btn->GetState()) {
 			case TwoStateButton::kTwoStateButtonStateOne:
@@ -34,7 +34,7 @@ namespace Editor {
 				break;
 			}
 		});
-		view_window->AppendUI(play_stop_button);
+		view_window->AppendUI(mPlayStopButton);
 		mViewWindow = view_window;
 	}
 	ViewWindow*TopToolsWindow::GetViewWindow() {

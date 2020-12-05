@@ -11,12 +11,25 @@ namespace Editor{
 	void TabButton::SetImageData(StreamImageData*data) {
 		mImage.SetImageData(data);
 	}
+	void TabButton::SetIconImageData(StreamImageData*data) {
+		mIcon.SetImageData(data);
+	}
 	void TabButton::SetRect(int x, int y, int width, int height) {
 		mImage.SetRect(x, y, width, height);
+		mIcon.SetRect(x + 2, y + 2, 16, 16);
+		mTitle.SetRect(x + 20, y+2, width - 20, height);
 		UINode::SetRect(x, y, width, height);
+	}
+	void TabButton::Init(StreamImageData*bkg_image, StreamImageData*icon_image, const char *text) {
+		SetImageData(bkg_image);
+		SetIconImageData(icon_image);
+		mTitle.SetAligning(Editor::AligningModeLeft);
+		mTitle.SetText(text);
 	}
 	void TabButton::Draw(Gdiplus::Graphics&painter) {
 		mImage.Draw(painter);
+		mIcon.Draw(painter);
+		mTitle.Draw(painter);
 	}
 	void TabButton::OnTouchBegin(int x, int y, int touch_id/* =0 */) {
 		Gdiplus::Rect original_rect = mImage.GetRect();

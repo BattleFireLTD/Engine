@@ -5,6 +5,7 @@ namespace Editor {
 		static TopMenuWindow * mSingleton;
 	protected:
 		ViewWindow * mViewWindow;
+		void OnSize(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 	public:
 		void Init(BaseWindow*parent);
 		ViewWindow*GetViewWindow();
