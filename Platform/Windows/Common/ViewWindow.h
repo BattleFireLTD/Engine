@@ -21,6 +21,15 @@ namespace Editor {
 		virtual void OnClearBKG(Gdiplus::Graphics&painter);
 		virtual void OnPaint(const Gdiplus::Rect &rect_need_update) {}
 		virtual void OnParentPaint(Gdiplus::Graphics&painter);
+		virtual LRESULT OnSizing(WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
+		void ExtentWindowFromLeft(int &deltaX);
+		void ReduceWindowFromLeft(int &deltaX);
+		void ExtentWindowFromRight(int &deltaX);
+		void ReduceWindowFromRight(int &deltaX);
+		void ExtentWindowFromTop(int &deltaY);
+		void ReduceWindowFromTop(int &deltaY);
+		void ExtentWindowFromBottom(int &deltaY);
+		void ReduceWindowFromBottom(int &deltaY);
 	public:
 		ViewWindow();
 		virtual void OnParentResized(int width, int height);

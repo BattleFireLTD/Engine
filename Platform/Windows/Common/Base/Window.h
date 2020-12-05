@@ -16,6 +16,7 @@ namespace Editor {
 		kSiblingWindowLocationAtBottom
 	};
 	class WindowHolder;
+	class WindowContainer;
 	class BaseWindow:public EventDispatcher{
 	protected:
 		HDC mHDC;
@@ -23,6 +24,7 @@ namespace Editor {
 		Gdiplus::Color mBKGColor;
 		Gdiplus::Rect mRect, mMinRect, mMaxRect, mPredefinedRect;
 		int mTopNCSize, mBottomNCSize, mLeftNCSize, mRightNCSize;
+		bool mbEnableCornerResizing;
 		int mSizingBorderSize;
 		char mName[64];
 	protected:
@@ -40,6 +42,7 @@ namespace Editor {
 		virtual LRESULT OnNCPAINT(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, void*reserved = nullptr);
 	public:
 		WindowHolder *mLeftSiblingWindows, *mRightSiblingWindows, *mTopSiblingWindows, *mBottomSiblingWindows;
+		WindowContainer*mParentContainer;
 		std::unordered_set<BaseWindow*> mChildren;
 		BaseWindow();
 		virtual ~BaseWindow();
@@ -54,6 +57,7 @@ namespace Editor {
 		void SetRect(Gdiplus::Rect &rect);
 		void SetSize(int width, int height, HWND param);
 		void SetNCSize(int left, int right, int bottom, int top);
+		void EnableCornerResizing(bool enable);
 		void SetSizingBorderSize(int size);
 		void SetWindowName(const char*name);
 		void GetRelativeWindowRect(Gdiplus::Rect &rect);

@@ -4,29 +4,32 @@ namespace Editor {
 	class WindowContainerHolder;
 	class WindowContainer {
 	protected:
-		Gdiplus::Rect mRect, mMinRect, mMaxRect, mPredefinedRect;
 		WindowHolder * mLeftMostChildren, *mRightMostChildren, *mTopMostChildren, *mBottomMostChildren;
+	public:
+		char mName[64];
+		Gdiplus::Rect mRect, mMinRect, mMaxRect, mPredefinedRect;
+		WindowContainer * mParentContainer;
 		WindowContainerHolder *mLeftMostContainer, *mRightMostContainer, *mTopMostContainer, *mBottomMostContainer;
 		WindowContainerHolder *mLeftSiblingContainers, *mRightSiblingContainers, *mTopSiblingContainers, *mBottomSiblingContainers;
-		char mName[64];
-	public:
 		WindowContainer(const char * name);
 		virtual ~WindowContainer();
 		void SetName(const char * name);
 		void SetMinRect(int x, int y, int width, int height);
 		void SetMaxRect(int x, int y, int width, int height);
 		Gdiplus::Rect GetMinRect() const { return mMinRect; }
+
 		void AddLeftEdgeChildContainer(WindowContainer*container);
 		void AddRightEdgeChildContainer(WindowContainer*container);
 		void AddBottomEdgeChildContainer(WindowContainer*container);
 		void AddTopEdgeChildContainer(WindowContainer*container);
+
 		void AddSiblingContainerAtLeft(WindowContainer*container);
 		void AddSiblingContainerAtRight(WindowContainer*container);
 		void AddSiblingContainerAtTop(WindowContainer*container);
 		void AddSiblingContainerAtBottom(WindowContainer*container);
+
 		void AddChildWindowAt(ChildWindowLocation location, BaseWindow*window);
 		void RemoveChildWindowAt(ChildWindowLocation location, BaseWindow*window);
-		void SetSiblingContainers(WindowContainer*left, WindowContainer*right, WindowContainer*bottom, WindowContainer*top);
 		void Complete();
 		int GenerateMinWidthViaChildWindows();
 		int GenerateMinHeightViaChildWindows();

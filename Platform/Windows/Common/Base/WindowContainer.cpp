@@ -15,6 +15,7 @@ namespace Editor {
 		mRightSiblingContainers = nullptr;
 		mTopSiblingContainers = nullptr;
 		mBottomSiblingContainers = nullptr;
+		mParentContainer = nullptr;
 		mMinRect = {0,0,-1,-1};
 		mMaxRect = {0,0,-1,-1};
 	}
@@ -30,9 +31,8 @@ namespace Editor {
 	void WindowContainer::SetMaxRect(int x, int y, int width, int height) {
 		mMaxRect = { x,y,width,height };
 	}
-	void WindowContainer::SetSiblingContainers(WindowContainer*left, WindowContainer*right, WindowContainer*bottom, WindowContainer*top) {
-	}
 	void WindowContainer::AddLeftEdgeChildContainer(WindowContainer*container) {
+		container->mParentContainer = this;
 		if (mLeftMostContainer == nullptr) {
 			mLeftMostContainer = new WindowContainerHolder(container);
 		}
@@ -41,6 +41,7 @@ namespace Editor {
 		}
 	}
 	void WindowContainer::AddRightEdgeChildContainer(WindowContainer*container) {
+		container->mParentContainer = this;
 		if (mRightMostContainer == nullptr) {
 			mRightMostContainer = new WindowContainerHolder(container);
 		}
@@ -49,6 +50,7 @@ namespace Editor {
 		}
 	}
 	void WindowContainer::AddBottomEdgeChildContainer(WindowContainer*container) {
+		container->mParentContainer = this;
 		if (mBottomMostContainer == nullptr) {
 			mBottomMostContainer = new WindowContainerHolder(container);
 		}
@@ -57,6 +59,7 @@ namespace Editor {
 		}
 	}
 	void WindowContainer::AddTopEdgeChildContainer(WindowContainer*container) {
+		container->mParentContainer = this;
 		if (mTopMostContainer == nullptr) {
 			mTopMostContainer = new WindowContainerHolder(container);
 		}
@@ -315,6 +318,7 @@ namespace Editor {
 		return (max_height==-1||right_sibling_max_height==-1) ? -1 : (max_height + right_sibling_max_height);
 	}
 	void WindowContainer::AddChildWindowAt(ChildWindowLocation location, BaseWindow*window) {
+		window->mParentContainer = this;
 		switch (location) {
 		case Editor::kChildWindowLocationLeftEdge:
 			if (mLeftMostChildren == nullptr) {

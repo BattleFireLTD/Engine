@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "WindowContainer.h"
 #include "Runtime/Debugger/Logger.h"
 #pragma comment(lib,"dwmapi.lib")
 #pragma warning(disable:4244)
@@ -13,11 +14,13 @@ namespace Editor{
 		mRightNCSize = 6;
 		mTopNCSize = 26;
 		mBottomNCSize = 6;
+		mbEnableCornerResizing = true;
 		mSizingBorderSize = 6;
 		mLeftSiblingWindows = nullptr;
 		mRightSiblingWindows = nullptr;
 		mTopSiblingWindows = nullptr;
 		mBottomSiblingWindows = nullptr;
+		mParentContainer = nullptr;
 		memset(mName, 0, 64);
 	}
 	BaseWindow::~BaseWindow(){
@@ -169,10 +172,10 @@ namespace Editor{
 		point.x = LOWORD(lParam) - WindowRect.left;
 		point.y = HIWORD(lParam) - WindowRect.top;
 		if (mLeftNCSize > 0 && point.x < mSizingBorderSize) {
-			if (point.y < mSizingBorderSize) {
+			if (point.y < mSizingBorderSize && mTopNCSize >0 && mbEnableCornerResizing) {
 				return HTTOPLEFT;
 			}
-			else if (point.y > (mRect.Height - mSizingBorderSize)) {
+			else if (point.y > (mRect.Height - mSizingBorderSize) && mBottomNCSize>0 && mbEnableCornerResizing) {
 				return HTBOTTOMLEFT;
 			}
 			return HTLEFT;
@@ -187,10 +190,10 @@ namespace Editor{
 			return HTCLIENT;
 		}
 		else if (mRightNCSize > 0 && point.x>mRect.Width-mSizingBorderSize) {
-			if (point.y <= mSizingBorderSize) {
+			if (point.y <= mSizingBorderSize && mbEnableCornerResizing) {
 				return HTTOPRIGHT;
 			}
-			else if (point.y >= (mRect.Height - mSizingBorderSize)) {
+			else if (point.y >= (mRect.Height - mSizingBorderSize) && mBottomNCSize>0 && mbEnableCornerResizing) {
 				return HTBOTTOMRIGHT;
 			}
 			return HTRIGHT;
@@ -300,6 +303,9 @@ namespace Editor{
 		mBottomNCSize = bottom;
 		mLeftNCSize = left;
 		mRightNCSize = right;
+	}
+	void BaseWindow::EnableCornerResizing(bool enable) {
+		mbEnableCornerResizing = enable;
 	}
 	void BaseWindow::SetSizingBorderSize(int size) {
 		mSizingBorderSize = size;
